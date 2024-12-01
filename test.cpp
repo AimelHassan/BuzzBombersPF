@@ -19,14 +19,14 @@ const int gameColumns = resolutionY / boxPixelsY; // Total columns on grid
 // Initializing GameGrid.
 int gameGrid[gameRows][gameColumns] = {};
 
-
+void printGameGrid() ;
 void drawPlayer(RenderWindow& window, float& player_x, float& player_y, Sprite& playerSprite);
 void moveBullet(float& bullet_y, bool& bullet_exists, Clock& bulletClock);
 void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& bulletSprite);
 void movePlayer(float& player_x,  int boundaryLeft,  int boundaryRight,  float speed);
 void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y);
 void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS);
 void drawBees(RenderWindow& window);
 bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
@@ -36,6 +36,9 @@ void drawHoneycombs(RenderWindow& window,
                     
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
                        float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
+bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
+void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS );
+bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS);
 /////////////////////////////////////////////////////////////////////////////
 //                                                                         //
 // Write your functions declarations here. Some have been written for you. //
@@ -93,7 +96,7 @@ int main()
 
 	RectangleShape groundRectangle(Vector2f(960, 64));
 	groundRectangle.setPosition(0, (gameColumns - 2) * boxPixelsY);
-	groundRectangle.setFillColor(Color::Green);
+	groundRectangle.setFillColor(Color::Red);
         
         //BEES NIGGA
         int MAX_BEES = 50;
@@ -114,15 +117,21 @@ int main()
         float honeycombX[MAX_HONEYCOMBS];
         float honeycombY[MAX_HONEYCOMBS];
         int honeycombType[MAX_HONEYCOMBS];
-        bool honeycombActive[MAX_HONEYCOMBS];
-        // Initialize arrays
-        for (int i = 0; i < MAX_HONEYCOMBS; i++) {
-            honeycombActive[i] = false;
-        }
+        bool honeycombActive[MAX_HONEYCOMBS] = {0};
+  
+        //flowers
+        const int MAX_FLOWERS = 100;
+        int flowerCord[MAX_FLOWERS][2] = {0};
+        int flowerActive[MAX_FLOWERS] = {0};
+                
+        
+        
+        
+        
             
 	while (window.isOpen()) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of the game loop)
-        
+  
         
 		Event e;
 		while (window.pollEvent(e)) {
@@ -139,7 +148,7 @@ int main()
 		///////////////////////////////////////////////////////////////
                 beesGenerator(beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE);  
                 movePlayer(player_x, 0, resolutionX - boxPixelsX, 0.2);
-                moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  MAX_BEES,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,MAX_HONEYCOMBS);
+                moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  MAX_BEES,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,MAX_HONEYCOMBS, flowerCord, flowerActive, MAX_FLOWERS);
                 fireBullet(bullet_x, bullet_y, bullet_exists, player_x, player_y);
     
 		if (bullet_exists == true)
@@ -147,10 +156,14 @@ int main()
 			moveBullet(bullet_y, bullet_exists, bulletClock);
 			drawBullet(window, bullet_x, bullet_y, bulletSprite);
 			//simple functionality to check if bullet has hit bee
-			//TODO: Add honey comb generation
+			//simple functionality to check if bullet hit honeycomb
 			if (checkBeeCollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  MAX_HONEYCOMBS)) 
 			{
                           bullet_exists = false;			
+			}else{
+			if (checkHoneyCombCollision( bullet_x, bullet_y,honeycombX, honeycombY,honeycombType, honeycombActive,  MAX_HONEYCOMBS)){
+			bullet_exists = false;
+			}
 			}
 		}
 		else
@@ -163,6 +176,7 @@ int main()
                 drawBees(window, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE);
 		window.draw(groundRectangle);
 		drawHoneycombs(window, honeycombX, honeycombY, honeycombType, honeycombActive, MAX_HONEYCOMBS);
+		drawFlowers(window, flowerCord,flowerActive,MAX_FLOWERS);
 		window.display();
 		window.clear();
 	}
@@ -242,8 +256,8 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
             maxBeeCount = 30;
             break;
     }
-    int delay = (beeCount < 6) ? 1 : 10; // 2 seconds for the first 6, 10 seconds for the rest
-    int beeNum = (beeCount < 6)? 1 : 2; // 1 bee for first 6, 2 bees for rest
+    int delay = (beeCount < 1) ? 1 : 10; // 2 seconds for the first 6, 10 seconds for the rest
+    int beeNum = (beeCount < 1)? 1 : 2; // 1 bee for first 6, 2 bees for rest
     // now we generate 2 bees every 2 seconds after initial 6
     if (beeClock.getElapsedTime().asSeconds() >= delay && beeCount < maxBeeCount) {
         int newBeesGenerated = 0;
@@ -265,9 +279,16 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
                         }
                 beesTier[i] = rand() % 2; // Random starting tier
                 (beesTier[i] == 1) ? beesY[i] = boxPixelsY : beesY[i] = boxPixelsY * 2;
-                
+                  
+                  
+                  
+                // Update game grid
+                int gridX = static_cast<int>(beesX[i]) / boxPixelsX;
+                int gridY = static_cast<int>(beesY[i]) / boxPixelsY;
+                gameGrid[gridX][gridY] = 1; // Mark bee's position in grid
                 beeCount++;
                 newBeesGenerated++;
+                printGameGrid();
               }else{
                 beesActive[i] = true;
                 beeTypes[i] = WORKER_BEE;
@@ -277,8 +298,15 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
                 (beesTier[i] == 1) ? beesY[i] = boxPixelsY : beesY[i] = boxPixelsY * 2;
                 beesDirection[i] = (startPoint == 1)? 1: 0; // Random initial direction
                 
+                
+              
+                // Update game grid
+                int gridX = static_cast<int>(beesX[i]) / boxPixelsX;
+                int gridY = static_cast<int>(beesY[i]) / boxPixelsY;
+                gameGrid[gridX][gridY] = 1; // Mark bee's position in grid
                 beeCount++;
                 newBeesGenerated++;
+                printGameGrid();
             }
           }
         }
@@ -290,7 +318,8 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
 }
 
 // MOVE BEES MOVEEEEEE
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS) {
+            printGameGrid();
   //static variabless to store state of pauses of bees across calls
   static Clock BeePauseClock;
   static float pauseStartTime[100] = {0}; // Store pause start time for each bee
@@ -299,8 +328,16 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
   
     for (int i = 0; i < MAX_BEES; i++) {
         if (beesActive[i]) {
+        
+            //clear old grid statu
+            int oldGridX = static_cast<int>(beesX[i]) / boxPixelsX;
+            int oldGridY = static_cast<int>(beesY[i]) / boxPixelsY;
+            gameGrid[oldGridX][oldGridY] = 0;
+            
+            
+            
             //we set the speed based on bee type
-            float speed = (beeTypes[i] == WORKER_BEE) ? 200.0f : 100.0f;
+            float speed = (beeTypes[i] == WORKER_BEE) ? 100.0f : 100.0f;
 
             // Calculate movement using deltaTime
             float movement = speed * deltaTime;
@@ -308,6 +345,10 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                   if (BeePauseClock.getElapsedTime().asSeconds() - pauseStartTime[i] >= PAUSE_DURATION) {
                     paused[i] = false; // Resume movement
                   } else {
+                              // Update new grid position
+                    int newGridX = static_cast<int>(beesX[i]) / boxPixelsX;
+                    int newGridY = static_cast<int>(beesY[i]) / boxPixelsY;
+                    gameGrid[newGridX][newGridY] = 1;
                     continue; // Skip movement while paused
                     }
               }
@@ -361,12 +402,22 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
             }
 
             }
-            
-
+                
+            if (beesY[i] >= (gameColumns - 4) * boxPixelsY){
+            cout<<"p reached"<<endl;
+                if (flowerGenerator(beesX[i],beesY[i],flowerCord,flowerActive,MAX_FLOWERS)){
+                    //if flower generated
+                    beesActive[i] = false;
+                }           
+              }
             // Deactivate bee if it reaches bottom
             if (beesY[i] >= resolutionY) {
                 beesActive[i] = false;
             }
+            // Update new grid position
+            int newGridX = static_cast<int>(beesX[i]) / boxPixelsX;
+            int newGridY = static_cast<int>(beesY[i]) / boxPixelsY;
+            gameGrid[newGridX][newGridY] = 1;
         }
     }
 }
@@ -411,7 +462,7 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
 //time for those honey pie i mean honey combs
 
 
-// Function to generate a honeycomb when a bee is hit
+//generatinggg a honeycomb when a bee is hit
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
                        float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
     for (int i = 0; i < MAX_HONEYCOMBS; i++) {
@@ -425,6 +476,7 @@ void generateHoneycomb(float bee_x, float bee_y, int beeType,
     }
 }
 
+//draw the honeycombssss
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
                     int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
@@ -440,5 +492,83 @@ void drawHoneycombs(RenderWindow& window,
             honeycombSprite.setPosition(honeycombX[i], honeycombY[i]);
             window.draw(honeycombSprite);
         }
+    }
+}
+
+//function to check collision between bullet and honeycomb
+bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS){
+   for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+        if (honeycombActive[i]) {
+            // Simple collision detection
+            if (abs(bullet_x - honeycombX[i]) < boxPixelsX && 
+                abs(bullet_y - honeycombY[i]) < boxPixelsY) {
+                
+                // remove honeycomb
+                honeycombActive[i] = false;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+
+// FLOWERSSSSS
+
+
+bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS) {
+    if (beeY >= (gameColumns - 4) * boxPixelsY ) {
+          if (static_cast<int>(beeX) % boxPixelsX == 0 || beeX == resolutionX - boxPixelsX){
+        // we see the bee is just above ground and aligned with grid
+        for (int i = 0; i < MAX_FLOWERS; i++) {
+            if (!flowerActive[i]) {
+                bool positionOccupied = false;
+                // checking if any existing flower is already at the bee's position to avoid overlapping
+                for (int j = 0; j < MAX_FLOWERS; j++) {
+                    if (flowerActive[j] && flowerCord[j][0] == static_cast<int>(beeX) && flowerCord[j][1]==static_cast<int>(beeY)){
+                        positionOccupied = true;
+                        break;
+                    }
+                }
+
+                if (!positionOccupied) {
+                    // Activate the flower at the bee's position
+                    flowerActive[i] = true;
+                    flowerCord[i][0] = static_cast<int>(beeX); // store flower X
+                    flowerCord[i][1] = static_cast<int>(beeY); // store flower Y
+                    cout << "Flower generated at (" << beeX << ", " << beeY << ")" << std::endl;
+                    return true;
+                }
+            }
+        }
+    }
+  }
+    return false; // No flower generated
+}
+
+
+
+
+
+void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS ) {
+    Texture flowerTexture;
+    flowerTexture.loadFromFile("Textures/flower.png");
+    Sprite flowerSprite;
+    flowerSprite.setTexture(flowerTexture);
+
+    for (int i = 0; i < MAX_FLOWERS; i++) {
+        if (flowerActive[i]) {
+            flowerSprite.setPosition(static_cast<float>(flowerCord[i][0]), static_cast<float>(flowerCord[i][1]));
+            window.draw(flowerSprite);
+        }
+    }
+}
+void printGameGrid() {
+    for (int y = 0; y < gameColumns; y++) {
+        for (int x = 0; x < gameRows; x++) {
+            cout << gameGrid[x][y] << " ";
+        }
+        cout << endl;
     }
 }
