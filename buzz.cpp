@@ -6,6 +6,9 @@
 using namespace std;
 using namespace sf;
 
+
+//TODO: EXPLORE RESOLUTION SETTINGS FOR BETTER GAMEPLAY, IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SCORE BOARD, IMPLEMENT LEADERBOARD 
+
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
 
@@ -581,3 +584,4 @@ void printGameGrid() {
         cout << endl;
     }
 }
+
