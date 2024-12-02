@@ -7,7 +7,7 @@ using namespace std;
 using namespace sf;
 
 
-//TODO: EXPLORE RESOLUTION SETTINGS FOR BETTER GAMEPLAY, IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SCORE BOARD, IMPLEMENT LEADERBOARD 
+//TODO:  IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SCORE BOARD, IMPLEMENT MENU AND LEVELS
 
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
@@ -35,8 +35,7 @@ bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float bees
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
-                    int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
-                    
+                    int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);             
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
                        float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
 bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
@@ -214,20 +213,82 @@ void drawBullet(sf::RenderWindow& window, float& bullet_x, float& bullet_y, Spri
 void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryRight, float speed, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS) {
     int oldGridX = static_cast<int>(player_x) / boxPixelsX;
     int oldGridY = static_cast<int>(player_y) / boxPixelsY;
+    bool canMoveRight = true;
+    bool canMoveLeft = true;
 
     // Texture size (32x32)
     const int textureSize = 32;
+    
+    // first we make a check if player is currently overlapping with a flower
+    bool playerOverlappingFlower = false;
+    for (int i = 0; i < MAX_FLOWERS; i++) {
+        if (flowerActive[i]) {
+            //this is a flower box
+            float flowerLeft = flowerCord[i][0];
+            float flowerRight = flowerLeft + textureSize - 1;
+            //player box
+            float playerLeft = player_x;
+            float playerRight = playerLeft + textureSize - 1;
+            
+            if (playerRight >= flowerLeft && playerLeft <= flowerRight) {
+                playerOverlappingFlower = true;
+                break;
+            }
+        }
+    }
+
+    // If player is overlapping a flower
+    if (playerOverlappingFlower) {
+        // we will first try to move right
+        float newX = player_x + textureSize;
+        canMoveRight = true;
+        
+        for (int i = 0; i < MAX_FLOWERS; i++) {
+            if (flowerActive[i]) {
+                float flowerLeft = flowerCord[i][0];
+                float flowerRight = flowerLeft + textureSize - 1;
+                
+                if (newX + textureSize - 1 >= flowerLeft && newX <= flowerRight) {
+                    canMoveRight = false;
+                    break;
+                }
+            }
+        }
+        
+        // If can't move right, try left
+        if (!canMoveRight) {
+            newX = player_x - textureSize;
+            canMoveLeft = true;
+            
+            for (int i = 0; i < MAX_FLOWERS; i++) {
+                if (flowerActive[i]) {
+                    float flowerLeft = flowerCord[i][0];
+                    float flowerRight = flowerLeft + textureSize - 1;
+                    
+                    if (newX + textureSize - 1 >= flowerLeft && newX <= flowerRight) {
+                        canMoveLeft = false;
+                        break;
+                    }
+                }
+            }
+            if (canMoveLeft) {
+                  player_x = newX;}
+          }else {
+              player_x = newX;
+          
+          }
+    }
 
     // Check for flower collision when moving left
     if (Keyboard::isKeyPressed(Keyboard::Left)) {
         if (player_x > boundaryLeft) {
             float NewX = player_x - speed;
-            bool canMoveLeft = true;
+            canMoveLeft = true;
 
             // Check collisions with each active flower
             for (int i = 0; i < MAX_FLOWERS; i++) {
                 if (flowerActive[i]) {
-                    // Flower horizontal bounds
+                    // Flower box 
                     float flowerLeft = flowerCord[i][0];
                     float flowerRight = flowerLeft + textureSize - 1;
 
@@ -243,7 +304,7 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                 }
             }
 
-            // Move if no collision and within boundary
+            // we move if no collision and within boundary
             if (canMoveLeft) {
                  player_x = NewX;
                 
@@ -254,17 +315,17 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                 // Clear old grid position
                 gameGrid[oldGridY][oldGridX] = 0;
                 
-                // Mark new grid position
+                // Mark the new grid position
                 gameGrid[newGridY][newGridX] = 1;
             }
         }
     }
 
-    // Check for flower collision when moving right
+    // same stuff as for left but now for right
     if (Keyboard::isKeyPressed(Keyboard::Right)) {
         if (player_x < boundaryRight) {
             float NewX = player_x + speed;
-            bool canMoveRight = true;
+            canMoveRight = true;
 
             // Check collisions with each active flower
             for (int i = 0; i < MAX_FLOWERS; i++) {
@@ -306,7 +367,13 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
     if (!Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Right)) {
         gameGrid[oldGridY][oldGridX] = 1;
     }
+    
+//end of function
 }
+
+
+
+
 //bullet boom boom
 void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y) {
     static bool wasSpacePressed = false; // Tracks if Space was pressed in the previous frame
@@ -347,7 +414,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
             maxBeeCount = 30;
             break;
     }
-    int delay = (beeCount < 6) ? 1 : 2; // 2 seconds for the first 6, 10 seconds for the rest
+    int delay = (beeCount < 6) ? 1 : 10; // 2 seconds for the first 6, 10 seconds for the rest
     int beeNum = (beeCount < 6)? 1 : 2; // 1 bee for first 6, 2 bees for rest
     // now we generate 2 bees every 2 seconds after initial 6
     if (beeClock.getElapsedTime().asSeconds() >= delay && beeCount < maxBeeCount) {
