@@ -7,7 +7,9 @@ using namespace std;
 using namespace sf;
 
 
-//TODO:  IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SCORE BOARD, IMPLEMENT MENU AND LEVELS
+//TODO:  IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SPRAY CAN LIVES AND SHOOTS, IMPLEMENT SCORE BOARD, IMPLEMENT MENU AND LEVELS
+//ACHIEVEMENT: TELEPORTING PLAYERRR LETS GOOOOOOOOO
+
 
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
@@ -132,8 +134,8 @@ int main()
             
 	while (window.isOpen()) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of the game loop)
-  
               printGameGrid();
+           
 		Event e;
 		while (window.pollEvent(e)) {
 			if (e.type == Event::Closed) {
@@ -215,10 +217,11 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
     int oldGridY = static_cast<int>(player_y) / boxPixelsY;
     bool canMoveRight = true;
     bool canMoveLeft = true;
-
+    bool forcedMove = false;
     // Texture size (32x32)
     const int textureSize = 32;
     
+    //THIS IS FOR OVERLAPPING FLOWER and PLAYER
     // first we make a check if player is currently overlapping with a flower
     bool playerOverlappingFlower = false;
     for (int i = 0; i < MAX_FLOWERS; i++) {
@@ -237,9 +240,9 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
         }
     }
 
-    // If player is overlapping a flower
     if (playerOverlappingFlower) {
         // we will first try to move right
+        forcedMove = true;
         float newX = player_x + textureSize;
         canMoveRight = true;
         
@@ -271,15 +274,26 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                     }
                 }
             }
-            if (canMoveLeft) {
-                  player_x = newX;}
-          }else {
-              player_x = newX;
-          
-          }
+        }
+        
+        // Update grid position if movement is possible
+        if (canMoveRight || canMoveLeft) {
+            // Clear the old grid position
+            gameGrid[oldGridY][oldGridX] = 0;
+            
+            // Update player position
+            player_x = newX;
+            
+            // Calculate and mark new grid position
+            int newGridX = static_cast<int>(player_x) / boxPixelsX;
+            int newGridY = static_cast<int>(player_y) / boxPixelsY;
+            gameGrid[newGridY][newGridX] = 1;
+        }
     }
+    
+/////////////////////////////////////////////////////////
 
-    // Check for flower collision when moving left
+    // check for flower collision when moving left
     if (Keyboard::isKeyPressed(Keyboard::Left)) {
         if (player_x > boundaryLeft) {
             float NewX = player_x - speed;
@@ -308,7 +322,10 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
             if (canMoveLeft) {
                  player_x = NewX;
                 
-                // Calculate new grid position
+            }
+        }
+    }
+
                 int newGridX = static_cast<int>(player_x) / boxPixelsX;
                 int newGridY = static_cast<int>(player_y) / boxPixelsY;
                 
@@ -317,11 +334,9 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                 
                 // Mark the new grid position
                 gameGrid[newGridY][newGridX] = 1;
-            }
-        }
-    }
-
-    // same stuff as for left but now for right
+                
+                
+                //same shit for left but now for right
     if (Keyboard::isKeyPressed(Keyboard::Right)) {
         if (player_x < boundaryRight) {
             float NewX = player_x + speed;
@@ -362,12 +377,72 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
             }
         }
     }
+          bool flowerOnImmediateRight = false;
+          bool flowerOnImmediateLeft = false;
+
+        for (int i = 0; i < MAX_FLOWERS; i++) {
+            if (flowerActive[i]) {
+           
+           float flowerLeft = flowerCord[i][0]; 
+                //same logic as the overlapping just we need to look through the whole array
+                float flowerRight = flowerLeft + textureSize - 1;
+                //basically we need to look at the immediate left and right of the player
+                // immediate Right Check
+                if (player_x + textureSize >= flowerLeft - 5 && 
+                    player_x + textureSize <= flowerLeft + textureSize + 5) {
+                    cout << "Flower immediately to the right at x=" << flowerLeft << endl;
+                    flowerOnImmediateRight = true;
+                }
+                
+                // immediate Left Check
+                if (player_x <= flowerRight +5 && player_x >= flowerLeft - 5) {
+                    cout << "Flower immediately to the left at x=" << flowerRight << endl;
+                    flowerOnImmediateLeft = true;
+                }
+            }
+        }
+        
+        if ( (flowerOnImmediateLeft && flowerOnImmediateRight) || (flowerOnImmediateLeft && player_x <= boundaryLeft) || 
+    (flowerOnImmediateRight && player_x >= boundaryRight)){
+            cout<<"player is stuck\n";
+            float playerLeft = player_x;
+            float playerRight = playerLeft + textureSize - 1;
+            for(int i =0; i < gameColumns; i++){
+                if(gameGrid[gameRows -3][i] == 0 && gameGrid[gameRows - 4][i] != 1){
+                    cout<<"empty space found";
+                    cout<<"found at : "<< i<<endl;
+                    printGameGrid();
+                    int teleportAT = i * boxPixelsX;
+                     if (abs(player_x - teleportAT) <= 10) {
+                        cout << "Game End";
+                    }
+                    else {
+                        cout<<"teleported";
+                    }
+                    player_x = teleportAT;
+                    break;
+                } 
+                else{cout<<"no empty space found\n";}
+            
+              }
+          
+          }
+        
+        
+        
+    
 
     // If no movement, ensure the current grid position remains marked
     if (!Keyboard::isKeyPressed(Keyboard::Left) && !Keyboard::isKeyPressed(Keyboard::Right)) {
         gameGrid[oldGridY][oldGridX] = 1;
     }
+    if (forcedMove){
+        gameGrid[oldGridY][oldGridX] = 0;
+    }
     
+    
+    
+
 //end of function
 }
 
@@ -405,7 +480,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
     int maxBeeCount = 0;
     switch (currentLevel) {
         case 1:
-            maxBeeCount = 20;
+            maxBeeCount = 22;
             break;
         case 2:
             maxBeeCount = 20;
@@ -414,8 +489,8 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
             maxBeeCount = 30;
             break;
     }
-    int delay = (beeCount < 6) ? 1 : 10; // 2 seconds for the first 6, 10 seconds for the rest
-    int beeNum = (beeCount < 6)? 1 : 2; // 1 bee for first 6, 2 bees for rest
+    int delay = (beeCount < 10) ? 1 : 2; // 2 seconds for the first 6, 10 seconds for the rest
+    int beeNum = (beeCount < 10)? 1 : 2; // 1 bee for first 6, 2 bees for rest
     // now we generate 2 bees every 2 seconds after initial 6
     if (beeClock.getElapsedTime().asSeconds() >= delay && beeCount < maxBeeCount) {
         int newBeesGenerated = 0;
@@ -442,7 +517,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
                   
                 beeCount++;
                 newBeesGenerated++;
-                printGameGrid();
+      
               }else{
                 beesActive[i] = true;
                 beeTypes[i] = WORKER_BEE;
@@ -455,7 +530,6 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
                 
                 beeCount++;
                 newBeesGenerated++;
-                printGameGrid();
             }
           }
         }
@@ -479,7 +553,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
         if (beesActive[i]) {
         
             //we set the speed based on bee type
-            float speed = (beeTypes[i] == WORKER_BEE) ? 500.0f : 100.0f;
+            float speed = (beeTypes[i] == WORKER_BEE) ? 800.0f : 100.0f;
 
             // Calculate movement using deltaTime
             float movement = speed * deltaTime;
