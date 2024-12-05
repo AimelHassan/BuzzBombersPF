@@ -7,7 +7,7 @@ using namespace std;
 using namespace sf;
 
 
-//TODO:  IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT BEE HIVE, IMPLEMENT HUMMINGBIRD, IMPLEMENT SPRAY CAN LIVES AND SHOOTS, IMPLEMENT SCORE BOARD, IMPLEMENT MENU AND LEVELS
+//TODO:  IMPLEMENT GRID UPDATES FOR ALL FUNCS, IMPLEMENT SCORE BOARD, IMPLEMENT MENU AND LEVELS
 //ACHIEVEMENT: TELEPORTING PLAYERRR LETS GOOOOOOOOO
 
 
@@ -25,13 +25,17 @@ const int gameColumns = (resolutionX / boxPixelsX); // Total columns on grid
 int gameGrid[gameRows][gameColumns] = {0};
 
 void printGameGrid() ;
-void drawPlayer(RenderWindow& window, float& player_x, float& player_y, Sprite& playerSprite);
+void drawPlayer(RenderWindow& window, float& player_x, float& player_y, Sprite& playerSprite, int spraycanState);
 void moveBullet(float& bullet_y, bool& bullet_exists, Clock& bulletClock);
 void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& bulletSprite);
 void movePlayer(float& player_x, float player_y, int boundaryLeft,  int boundaryRight,  float speed, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS);
-void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y);
+void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives);
 void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS);
+
+
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS,float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES);
+
+
 void drawBees(RenderWindow& window);
 bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
@@ -43,6 +47,17 @@ void generateHoneycomb(float bee_x, float bee_y, int beeType,
 bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
 void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS );
 bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS);
+void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge);
+void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbirdY, bool isBirdSick, bool hummingbirdActive);
+bool checkBirdCollision(float& hummingbirdX, float& hummingbirdY, 
+                        float bulletX, float bulletY,
+                        bool& hummingbirdActive, bool& isBirdSick, 
+                        int& collidedBulletCount, Clock& sickClock, bool& isFlyingToEdge);
+void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES);
+void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES );
+bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES);
+
+
 /////////////////////////////////////////////////////////////////////////////
 //                                                                         //
 // Write your functions declarations here. Some have been written for you. //
@@ -128,14 +143,38 @@ int main()
         int flowerActive[MAX_FLOWERS] = {0};
                 
         
+        // Hummingbird Variables
+        float hummingbirdX = -100; // Start off-screen
+        float hummingbirdY = -100; // Start off-screen
+        bool hummingbirdActive = false;
+        bool isBirdSick = false;
+        Clock sickClock;
+        int collidedBulletCount = 0;
+        bool isFlyingToEdge;   
         
         
+        //BEE HIVE 
+        int MAX_BEEHIVES = 100;
+       float beehiveCord[MAX_BEEHIVES][2] = {0};
+       bool beehiveActive[MAX_BEEHIVES] = {0};
+
         
-            
+      //spray can
+      int sprays = 0;
+      int spraycanLives = 2;
+      int spraycanState = 0;
+  
+        honeycombX[1] = 128;
+        honeycombY[1] = 64;
+        honeycombActive[1] = 0;
+        honeycombType[1] = 0;
+        honeycombX[2] = 0;
+        honeycombY[2] = 96;
+        honeycombType[2] = 0;
+        honeycombActive[2] = 1;
 	while (window.isOpen()) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of the game loop)
-              printGameGrid();
-           
+             
 		Event e;
 		while (window.pollEvent(e)) {
 			if (e.type == Event::Closed) {
@@ -151,23 +190,32 @@ int main()
 		///////////////////////////////////////////////////////////////
                 beesGenerator(beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE);  
                 movePlayer(player_x, player_y, 0, resolutionX - boxPixelsX, 0.32, flowerCord,flowerActive,MAX_FLOWERS);
-                moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  MAX_BEES,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,MAX_HONEYCOMBS, flowerCord, flowerActive, MAX_FLOWERS);
-                fireBullet(bullet_x, bullet_y, bullet_exists, player_x, player_y);
-    
+                moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  MAX_BEES,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,MAX_HONEYCOMBS, flowerCord, flowerActive, MAX_FLOWERS, beehiveCord, beehiveActive, MAX_BEEHIVES);
+                fireBullet(bullet_x, bullet_y, bullet_exists, player_x, player_y, sprays, spraycanState, spraycanLives);
+                generateHummingbird(hummingbirdX, hummingbirdY, hummingbirdActive, honeycombX, honeycombY, honeycombActive, MAX_HONEYCOMBS, isBirdSick, sickClock, isFlyingToEdge);
 		if (bullet_exists == true)
 		{       
 			moveBullet(bullet_y, bullet_exists, bulletClock);
 			drawBullet(window, bullet_x, bullet_y, bulletSprite);
 			//simple functionality to check if bullet has hit bee
 			//simple functionality to check if bullet hit honeycomb
+			//blah blah hummingbird check
 			if (checkBeeCollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  MAX_HONEYCOMBS)) 
 			{
                           bullet_exists = false;			
-			}else{
-			if (checkHoneyCombCollision( bullet_x, bullet_y,honeycombX, honeycombY,honeycombType, honeycombActive,  MAX_HONEYCOMBS)){
+			}else if (checkHoneyCombCollision( bullet_x, bullet_y,honeycombX, honeycombY,honeycombType, honeycombActive,  MAX_HONEYCOMBS)){
+			bullet_exists = false;
+			}else if(checkBeeHiveCollision(bullet_x, bullet_y, beehiveCord, beehiveActive,MAX_BEEHIVES)){
 			bullet_exists = false;
 			}
+			else if(checkBirdCollision(hummingbirdX,hummingbirdY, bullet_x, bullet_y,
+                        hummingbirdActive, isBirdSick, 
+                        collidedBulletCount,  sickClock, isFlyingToEdge)){
+			
+			bullet_exists = false;
 			}
+			
+			
 		}
 		else
 		{
@@ -175,11 +223,13 @@ int main()
 			bullet_y = player_y+64;
 		}
                 
-		drawPlayer(window, player_x, player_y, playerSprite);
+		drawPlayer(window, player_x, player_y, playerSprite, spraycanState);
                 drawBees(window, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE);
 		window.draw(groundRectangle);
 		drawHoneycombs(window, honeycombX, honeycombY, honeycombType, honeycombActive, MAX_HONEYCOMBS);
 		drawFlowers(window, flowerCord,flowerActive,MAX_FLOWERS);
+		drawBeeHive( window, beehiveCord, beehiveActive, MAX_BEEHIVES);
+		drawHummingbird(window, hummingbirdX, hummingbirdY, isBirdSick, hummingbirdActive);
 		window.display();
 		window.clear();
 	}
@@ -191,9 +241,15 @@ int main()
 //                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
-void drawPlayer(RenderWindow& window, float& player_x, float& player_y, Sprite& playerSprite) {
-	playerSprite.setPosition(player_x, player_y);
-	window.draw(playerSprite);
+void drawPlayer(RenderWindow& window, float& player_x, float& player_y, Sprite& playerSprite, int spraycanState) {
+    playerSprite.setPosition(player_x, player_y);
+    window.draw(playerSprite);
+    const int decreaseConstant = 4;
+    // Create white rectangle for spray can state
+    RectangleShape stateRect(Vector2f(boxPixelsX -10, boxPixelsY-decreaseConstant*spraycanState));
+    stateRect.setFillColor(Color::White);
+    stateRect.setPosition(player_x +10, player_y + boxPixelsY + decreaseConstant*spraycanState);
+    window.draw(stateRect);
 }
 void moveBullet(float& bullet_y, bool& bullet_exists, Clock& bulletClock) {
 	if (bulletClock.getElapsedTime().asMilliseconds() < 20)
@@ -390,13 +446,13 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                 // immediate Right Check
                 if (player_x + textureSize >= flowerLeft - 5 && 
                     player_x + textureSize <= flowerLeft + textureSize + 5) {
-                    cout << "Flower immediately to the right at x=" << flowerLeft << endl;
+
                     flowerOnImmediateRight = true;
                 }
                 
                 // immediate Left Check
                 if (player_x <= flowerRight +5 && player_x >= flowerLeft - 5) {
-                    cout << "Flower immediately to the left at x=" << flowerRight << endl;
+
                     flowerOnImmediateLeft = true;
                 }
             }
@@ -409,8 +465,6 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
             float playerRight = playerLeft + textureSize - 1;
             for(int i =0; i < gameColumns; i++){
                 if(gameGrid[gameRows -3][i] == 0 && gameGrid[gameRows - 4][i] != 1){
-                    cout<<"empty space found";
-                    cout<<"found at : "<< i<<endl;
                     printGameGrid();
                     int teleportAT = i * boxPixelsX;
                      if (abs(player_x - teleportAT) <= 10) {
@@ -422,9 +476,7 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                     player_x = teleportAT;
                     break;
                 } 
-                else{cout<<"no empty space found\n";}
-            
-              }
+            }
           
           }
         
@@ -450,21 +502,37 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
 
 
 //bullet boom boom
-void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y) {
+void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives) {
     static bool wasSpacePressed = false; // Tracks if Space was pressed in the previous frame
-
+    static int totalSprays = 0;
     bool isSpacePressed = Keyboard::isKeyPressed(Keyboard::Space);
 
     if (isSpacePressed && !wasSpacePressed && !bullet_exists) { // Fire only on the first press
         bullet_exists = true;
         bullet_x = player_x;
         bullet_y = player_y;
+        sprays++;
+    }
+    cout<<sprays<<endl;
+    if(sprays ==8){
+      spraycanState += 1;
+      totalSprays += sprays;
+      sprays = 0;
+    }
+    cout<<totalSprays<<endl;
+    if(totalSprays == 56){
+      spraycanLives -=1;
+      totalSprays = 0;
+      spraycanState =0;
     }
 
     // this makes it so that continous firing is not allowed by holding space bar
     // the function gets called on every game loop, if the spacebar has been held during two game loops, the bullet wont fire, if the space bar was not pressed in the second game loop then it would fire
     wasSpacePressed = isSpacePressed;
 }
+
+
+
 
 // Current game level
 int currentLevel = 1;
@@ -541,7 +609,7 @@ cout<<beeCount<<endl;
 }
 
 // MOVE BEES MOVEEEEEE
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS) {
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES) {
             
   //static variabless to store state of pauses of bees across calls
   static Clock BeePauseClock;
@@ -586,32 +654,117 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                 if (honeycombActive[j]) {
                     if (abs(beesX[i] - honeycombX[j]) < boxPixelsX && 
                         abs(beesY[i] - honeycombY[j]) < boxPixelsY) {
-                        // Reverse direction
+                        // Reverse direction and also reset its X to before honeycomb
+                        beesX[i] = (beesDirection[i]) ? 
+                        honeycombX[j] - boxPixelsX : 
+                        honeycombX[j] + boxPixelsX;
                         beesDirection[i] = !beesDirection[i];
                         
                         // For worker bees, drop to next tier
                         if (beeTypes[i] == WORKER_BEE) {
-                            beesY[i] += boxPixelsY;
-                            beesTier[i]++;
+                            float newBeeY = beesY[i] + boxPixelsY;
+                            bool honeycombBelow = false; // use a bool to track honey comb below
+                            
+                          for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                            //same collision logic as above
+                                if (honeycombActive[k] && 
+                                    abs(beesX[i] - honeycombX[k]) < boxPixelsX && 
+                                    abs(newBeeY - honeycombY[k]) < boxPixelsY) {
+                                    honeycombBelow = true;
+                                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES);
+                                    beesActive[i] = false;
+                                    cout<<"x";
+                                    break;
+                                }
+                            }
+                            // If no honeycomb below, move bee down
+                            if (!honeycombBelow) {
+                                beesY[i] = newBeeY;
+                                beesTier[i]++;
+                            }
                         }
+                        
                         bounced = true;
                         break;
                     }
                 }
             }
+            
+//collision with bee hive
+for (int j = 0; j < MAX_BEEHIVES; j++) {
+    if (beehiveActive[j]) {
+        if (abs(beesX[i] - beehiveCord[j][0]) < boxPixelsX && 
+            abs(beesY[i] - beehiveCord[j][1]) < boxPixelsY) {
+            beesX[i] = (beesDirection[i]) ? 
+            beehiveCord[j][0] - boxPixelsX : 
+            beehiveCord[j][0] + boxPixelsX;
+            beesDirection[i] = !beesDirection[i];
+            // For worker bees, drop to next tier
+            if (beeTypes[i] == WORKER_BEE) {
+                float newBeeY = beesY[i] + boxPixelsY;
+                bool beehiveBelow = false;
+                beesY[i] = newBeeY;
+                beesTier[i]++;
+                
+              }
+            break;
+          }
+      }
+  }
+            
+            
+            
         float lastRow = (gameRows - 3) * boxPixelsY;
             // If no honeycomb collision, check screen boundaries
             if (!bounced) {
               if (beesX[i] <= 0 && beesY[i] < lastRow) {
                 beesX[i] = 0;  // Stop at the left edge
                 beesDirection[i] = !beesDirection[i];  // Reverse direction
-                beesY[i] += boxPixelsY;  // Drop to the next tier
-                beesTier[i]++;           // Increment tier
-            } else if (beesX[i] >= resolutionX - boxPixelsX && beesY[i] <lastRow) {
+                
+                float newBeeY = beesY[i] + boxPixelsY;
+                bool honeycombBelow = false; // use a bool to track honey comb below            
+                for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                //same collision logic as above
+                if (honeycombActive[k] && 
+                abs(beesX[i] - honeycombX[k]) < boxPixelsX && 
+                abs(newBeeY - honeycombY[k]) < boxPixelsY) {
+                    honeycombBelow = true;
+                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES);
+                    beesActive[i] = false;
+                    cout<<"x";
+                    break;
+                }
+            }
+                            
+                // If no honeycomb below, move bee down
+                if (!honeycombBelow) {
+                    beesY[i] = newBeeY;
+                    beesTier[i]++;
+                  }
+              }
+             else if (beesX[i] >= resolutionX - boxPixelsX && beesY[i] <lastRow) {
                 beesX[i] = resolutionX - boxPixelsX;  // Stop at the right edge
                 beesDirection[i] = !beesDirection[i];  // Reverse direction
-                beesY[i] += boxPixelsY;  // Drop to the next tier
-                beesTier[i]++;           // Increment tier
+                float newBeeY = beesY[i] + boxPixelsY;
+                bool honeycombBelow = false; // use a bool to track honey comb below            
+                for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                //same collision logic as above
+                if (honeycombActive[k] && 
+                abs(beesX[i] - honeycombX[k]) < boxPixelsX && 
+                abs(newBeeY - honeycombY[k]) < boxPixelsY) {
+                    honeycombBelow = true;
+                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES);
+                    beesActive[i] = false;
+                    cout<<"x";
+                    break;
+                }
+            }
+                            
+                // If no honeycomb below, move bee down
+                if (!honeycombBelow) {
+                    beesY[i] = newBeeY;
+                    beesTier[i]++;
+                  }
             }
             //if it is on last row, dont drop it down just change its direction
             else if (beesY[i]>= lastRow && beesX[i] <= 0 || beesX[i]>= resolutionX - boxPixelsX ){
@@ -678,7 +831,6 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
                        float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
                        
-    static Clock honeytransformClock;
     for (int i = 0; i < MAX_HONEYCOMBS; i++) {
         if (!honeycombActive[i]) {
             honeycombX[i] = bee_x;
@@ -836,3 +988,310 @@ void printGameGrid() {
     }
 }
 
+//HUMMINGBIRD LETS GOOOOOOOOOOOO
+
+const float TARGET_REACHED_THRESHOLD = 1.0f;
+void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, 
+                         float honeycombX[], float honeycombY[], bool honeycombActive[], 
+                         int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge) {
+
+    static Clock pauseClock;
+    static Clock hummingbirdClock;
+    static int hummingbirdMovementCount = 0; // Keep track of movement count
+    static float targetX = 0; // Target X position
+    static float targetY = 0; // Target Y position
+    static bool newTargetNeeded = true; // Flag to indicate if a new target is needed
+    static bool isPaused = false;
+
+   if (isFlyingToEdge) {
+        static bool targetCalculated = false;
+        if (!targetCalculated) {
+            float leftDistance = hummingbirdX;
+            float rightDistance = resolutionX - (hummingbirdX + boxPixelsX);
+
+            float minDistance = min({leftDistance, rightDistance});
+            if (minDistance == leftDistance) {
+                targetX = 0;
+                targetY = hummingbirdY;
+            } else if (minDistance == rightDistance) {
+                targetX = resolutionX - boxPixelsX;
+                targetY = hummingbirdY;
+            }
+            targetCalculated = true; // Prevent recalculation
+        }
+
+        // Move towards the calculated edge
+        float speed = 10.0f; // Speed of the hummingbird
+        float deltaTime = 0.016f; // Assuming 60 FPS
+        if (hummingbirdX < targetX) {
+            hummingbirdX += speed * deltaTime;
+            if (hummingbirdX > targetX) hummingbirdX = targetX;
+        } else {
+            hummingbirdX -= speed * deltaTime;
+            if (hummingbirdX < targetX) hummingbirdX = targetX;
+        }
+
+        if (hummingbirdY < targetY) {
+            hummingbirdY += speed * deltaTime;
+            if (hummingbirdY > targetY) hummingbirdY = targetY;
+        } else {
+            hummingbirdY -= speed * deltaTime;
+            if (hummingbirdY < targetY) hummingbirdY = targetY;
+        }
+
+        // If the bird has reached the edge, reset its state
+        if (abs(hummingbirdX - targetX) < 1.0f && abs(hummingbirdY - targetY) < 1.0f) {
+            isFlyingToEdge = false;  // Reset flying state
+            targetCalculated = false; // Reset for the next flight
+            hummingbirdActive = false; // Despawn the bird
+        }
+    }
+
+
+    // Check if the hummingbird should be generated
+    if (!hummingbirdActive && !isBirdSick && hummingbirdClock.getElapsedTime().asSeconds() >= 4) {
+        // Generate at a random edge
+        int edge = rand() % 4; // 0 = left, 1 = right, 2 = top, 3 = bottom
+        switch (edge) {
+            case 0: // Left edge
+                hummingbirdX = 0;
+                hummingbirdY = rand() % resolutionY;
+                break;
+            case 1: // Right edge
+                hummingbirdX = resolutionX - boxPixelsX;
+                hummingbirdY = rand() % resolutionY;
+                break;
+            case 2: // Top edge
+                hummingbirdX = rand() % resolutionX;
+                hummingbirdY = 0;
+                break;
+            case 3: // Bottom edge
+                hummingbirdX = rand() % resolutionX;
+                hummingbirdY = resolutionY - boxPixelsY;
+                break;
+        }
+
+        hummingbirdActive = true;
+        hummingbirdMovementCount = 0; // Reset movement count
+        newTargetNeeded = true; // Set flag to generate a new target
+    }
+        // Check if bird has been sick for 5 seconds
+    if (isBirdSick && sickClock.getElapsedTime().asSeconds() >= 5) {
+        isBirdSick = false; // Heal the bird
+    }
+
+
+    // If the hummingbird is active, move it
+
+    if (hummingbirdActive) {
+        if (newTargetNeeded) {
+            // Generate a new random target position
+            targetX = rand() % (resolutionX - boxPixelsX);
+            targetY = rand() % resolutionY;
+            if (targetY >= (gameRows - 3) * boxPixelsY){
+              targetY = rand()%resolutionY;
+            }else{ 
+            newTargetNeeded = false; // Reset the flag
+        }}
+
+
+        // Move towards the target position
+        float speed = 10.0f; // Speed of the hummingbird
+        float deltaTime = 0.016f; // Assuming 60 FPS
+        // Move towards the target
+        if (hummingbirdX < targetX) {
+            hummingbirdX += speed * deltaTime;
+            if (hummingbirdX > targetX) hummingbirdX = targetX; // Snap to target
+        } 
+        else {
+            hummingbirdX -= speed * deltaTime;
+            if (hummingbirdX < targetX) hummingbirdX = targetX; // Snap to target
+        }
+
+        if (hummingbirdY < targetY) {
+            hummingbirdY += speed * deltaTime;
+            if (hummingbirdY > targetY) hummingbirdY = targetY; // Snap to target
+        } else 
+        {
+            hummingbirdY -= speed * deltaTime;
+            if (hummingbirdY < targetY) hummingbirdY = targetY; // Snap to target
+        }
+
+
+        // Check if reached the target using simple arithmetic
+        if (abs(hummingbirdX - targetX) < TARGET_REACHED_THRESHOLD && 
+            abs(hummingbirdY - targetY) < TARGET_REACHED_THRESHOLD) {
+            if (!isPaused) {
+            // Start the pause
+            isPaused = true;
+            pauseClock.restart(); // Reset the pause clock
+    } else {
+
+        // Check if the pause duration has elapsed
+        if (pauseClock.getElapsedTime().asSeconds() >= 2) {
+            hummingbirdMovementCount++;
+            newTargetNeeded = true; // Set flag to generate a new target
+            isPaused = false; // Reset the pause flag
+            for (int i = 0; i < MAX_HONEYCOMBS; i++){
+                    if(honeycombActive[i]){
+                        if(honeycombX[i] == targetX && honeycombY[i] == targetY){
+                            honeycombActive[i] = false;
+                          }
+                    
+                    }  
+                    
+                }
+          }
+        }
+    }
+
+        // If the hummingbird has moved to the third target, find the nearest honeycomb
+        if (hummingbirdMovementCount >= 3) {
+
+            // Find the nearest honeycomb
+
+            float nearestDistance = 10000000000;
+            int nearestHoneycombIndex = -1;
+
+            for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+                if (honeycombActive[i]) {
+                float distance = (honeycombX[i] - hummingbirdX) * (honeycombX[i] - hummingbirdX) + (honeycombY[i] - hummingbirdY) * (honeycombY[i] - hummingbirdY); //using pythogras formula to calculate displacement
+                distance = distance * 0.5;
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance; //if the displacement is lesser than the nearest distance
+                        nearestHoneycombIndex = i; //then that is the new nearest distance
+                    }
+
+                }
+
+            }
+
+            if (nearestHoneycombIndex != -1) {
+                targetX = honeycombX[nearestHoneycombIndex];
+                targetY = honeycombY[nearestHoneycombIndex];
+                newTargetNeeded = false; // Reset the flag to avoid generating a new target
+                hummingbirdMovementCount = 0;
+
+            }
+
+        }
+
+    }
+
+}
+bool checkBirdCollision(float& hummingbirdX, float& hummingbirdY, 
+                        float bulletX, float bulletY,
+                        bool& hummingbirdActive, bool& isBirdSick, 
+                        int& collidedBulletCount,  
+                        Clock& sickClock, bool& isFlyingToEdge) {
+    bool collided = (bulletX >= hummingbirdX - 20 &&
+                     bulletX <= hummingbirdX + 20 &&
+                     bulletY >= hummingbirdY &&
+                     bulletY <= hummingbirdY + 20);
+
+    if (collided) {
+        collidedBulletCount++;
+        if (collidedBulletCount >= 3) {
+            isBirdSick = true;
+            sickClock.restart();
+            isFlyingToEdge = true;
+            collidedBulletCount = 0;
+        }
+        return true; // Collision detected
+    }
+    return false; // No collision
+}
+
+
+
+
+//Humming BIRD DRAW
+void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbirdY, bool isBirdSick, bool hummingbirdActive) {
+    static Texture normalTexture;
+    static Texture sickTexture;
+    static bool isNormalTextureLoaded = false;
+    static bool isSickTextureLoaded = false;
+    static int currentFrame = 0;
+
+    if (hummingbirdActive) {
+        // Load normal texture
+        if (!isNormalTextureLoaded) {
+            if (!normalTexture.loadFromFile("Textures/bird.png")) {
+                return;
+            }
+            isNormalTextureLoaded = true;
+        }
+
+        // Load sick texture
+        if (!isSickTextureLoaded) {
+            if (!sickTexture.loadFromFile("Textures/birdsick.png")) {
+                return;
+            }
+            isSickTextureLoaded = true;
+        }
+        
+        Sprite hummingbirdSprite;
+        if (isBirdSick) {
+            hummingbirdSprite.setTexture(sickTexture);
+        } else {
+            hummingbirdSprite.setTexture(normalTexture);
+        }
+        
+        IntRect frames[] = {
+            IntRect(0, 0, 32, 32),  // Frame 1
+            IntRect(32, 0, 32, 32)  // Frame 2
+        };
+        currentFrame = (currentFrame + 1) % 2;
+        hummingbirdSprite.setTextureRect(frames[currentFrame]);
+
+        // Set position and draw
+        hummingbirdSprite.setPosition(hummingbirdX, hummingbirdY);
+        window.draw(hummingbirdSprite);
+    }
+}
+
+
+
+//BOYS BEE HIVE TIME
+void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES){
+cout<<"y";
+    for (int i = 0; i < MAX_BEEHIVES ; i++) {
+        if (!beehiveActive[i]) {
+            beehiveCord[i][0] = beeX;
+            beehiveCord[i][1] = beeY;
+            beehiveActive[i] = true;
+            break;
+        }
+    }
+}
+
+bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES) {
+   for (int i = 0; i < MAX_BEEHIVES; i++) {
+        if (beehiveActive[i]) {
+            // Simple collision detection
+            if (abs(bullet_x - beehiveCord[i][0]) < boxPixelsX && 
+                abs(bullet_y - beehiveCord[i][1]) < boxPixelsY) {
+                // remove beehive
+                beehiveActive[i] = false;
+                return true;
+            }
+        }
+    }
+    return false;   
+}
+
+
+
+void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES ) {
+    Texture beehiveTexture;
+    beehiveTexture.loadFromFile("Textures/hive1.png");
+    Sprite beehiveSprite;
+    beehiveSprite.setTexture(beehiveTexture);
+
+    for (int i = 0; i < MAX_BEEHIVES; i++) {
+        if (beehiveActive[i]) {
+            beehiveSprite.setPosition(static_cast<float>(beehiveCord[i][0]), static_cast<float>(beehiveCord[i][1]));
+            window.draw(beehiveSprite);
+        }
+    }
+}
