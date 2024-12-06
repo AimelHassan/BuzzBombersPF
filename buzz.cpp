@@ -2,19 +2,22 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <string>
+#include <fstream>
 
 using namespace std;
 using namespace sf;
 
 
 //TODO:   IMPLEMENT:
-//        scoreboard and lives
 //        leaderboard
+//        fix reset level and reset game 
+//        make level switch screen
 //        fourth level
 //        infant bee
 //ACHIEVEMENT: TELEPORTING PLAYERRR LETS GOOOOOOOOO
-
-
+//BUGS : BEES DISAPPEAR SOMETIMES WHEN HIT A BEEHIVE AND BELOW IS A HONEY COMB
+//TODO: GO THROUGH THE CODE AND REFINE IT
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
 
@@ -41,17 +44,17 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
 
 
 void drawBees(RenderWindow& window);
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
+bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int& playerScore, int honeycombTier[]);
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
                     int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);             
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
-                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
+                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int beeTier, int honeycombTier[]);
 bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);
 void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS );
 bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& firstbeeLEFT, bool& firstbeeRIGHT);
-void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge);
+void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[]);
 void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbirdY, bool isBirdSick, bool hummingbirdActive);
 bool checkBirdCollision(float& hummingbirdX, float& hummingbirdY, 
                         float bulletX, float bulletY,
@@ -73,10 +76,14 @@ void resetGame(float& player_x, float& player_y,
                int& currentLevel, int& sprays, int& spraycanLives, int& spraycanState, int& beeCount, bool& firstbeeLEFT, bool& firstbeeRIGHT);
                
 void resetLevel(bool& resetCall, int& spraycanLives, bool& inMenu);
-void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel);
+void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[]);
 void callGameEnd( bool& inGameEnd, bool& resetCall);
 void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES);
-
+void drawScore(RenderWindow& window, int playerScore);
+void drawPlayerLives(RenderWindow& window, int spraycanLives);
+void sortleaderboard(string leaderboard[][2], int MAX_PLAYERS);
+void storeleaderboard(string leaderboard[][2], int MAX_PLAYERS);
+void readleaderboard(string leaderboard[][2], int MAX_PLAYERS);
 /////////////////////////////////////////////////////////////////////////////
 //                                                                         //
 // Write your functions declarations here. Some have been written for you. //
@@ -113,7 +120,7 @@ int main()
 
           Text titleText("Buzz Bombers", menuFont, 50);
           titleText.setFillColor(Color::White);
-          titleText.setPosition(resolutionX/2 - titleText.getLocalBounds().width/2, 100);
+          titleText.setPosition(resolutionX/2 - titleText.getLocalBounds().width/2, 100); //using local bounds to make sure it is in middle of screen
           Text level1Text("Level 1", menuFont, 30);
           level1Text.setFillColor(Color::White);
           level1Text.setPosition(resolutionX/2 - level1Text.getLocalBounds().width/2, 190);
@@ -163,12 +170,17 @@ int main()
 	// Initializing Player and Player Sprites.
 	float player_x = (gameColumns / 2) * boxPixelsX;
 	float player_y = (gameRows - 4) * boxPixelsY;
-
+	int playerScore = 0;
+        //Initializing the leaderboard array over here
+        const int MAX_PLAYERS = 10;
+        string leaderboard[MAX_PLAYERS][2];
+        readleaderboard(leaderboard, MAX_PLAYERS);
 	Texture playerTexture;
 	Sprite playerSprite;
 	playerTexture.loadFromFile("Textures/spray.png");
         playerSprite.setTextureRect(IntRect(10, 0, playerTexture.getSize().x, playerTexture.getSize().y));
-	playerSprite.setTexture(playerTexture);
+	playerSprite.setTexture(playerTexture); 
+	
 
 
 		// Initializing Bullet and Bullet Sprites
@@ -212,7 +224,7 @@ int main()
         float honeycombY[MAX_HONEYCOMBS];
         int honeycombType[MAX_HONEYCOMBS];
         bool honeycombActive[MAX_HONEYCOMBS] = {0};
-  
+        int honeycombTier[] = {0};
         //flowers
         const int MAX_FLOWERS = 100;
         int flowerCord[MAX_FLOWERS][2] = {0};
@@ -295,56 +307,64 @@ int main()
           }
           ///////////////////in game end state//////////////////////
           else if (inGameEnd) {
-        // End screen event handling
+          //before anything lets sort our leaderboard array 
+
+          
             Event endEvent;
             while (window.pollEvent(endEvent)) {
                 if (endEvent.type == Event::Closed) 
                     return 0;
 
-            // Mouse click to activate/deactivate input box
+            // we will detect mouse click
             if (endEvent.type == Event::MouseButtonPressed) {
                 Vector2i mousePos = Mouse::getPosition(window);
                 
-                // Check if mouse is inside input box
+                // we check if mouse is inside input box
                 if (nameInputBox.getGlobalBounds().contains(mousePos.x, mousePos.y)) {
                     isNameInputActive = true;
-                    // Optional: Change input box color when active
                     nameInputBox.setOutlineColor(Color::Green);
                 } else {
                     isNameInputActive = false;
-                    // Reset input box color when not active
                     nameInputBox.setOutlineColor(Color::White);
                 }
             }
 
-            // Text input handling (only when input box is active)
+            // when input box is active only then detect key presses
             if (isNameInputActive && endEvent.type == Event::TextEntered) {
-                // Limit name length (e.g., max 20 characters)
+                // limiting name length
                 if (playerName.length() < 20) {
-                    // Backspace handling
+                    // backspace handle
                     if (endEvent.text.unicode == '\b') {
                         if (!playerName.empty()) {
-                            playerName.pop_back();
+                            playerName.pop_back();//use of stack
                        }
                     }
-                    // Printable characters
+                    // use unicode to detect characters
                     else if (endEvent.text.unicode >= 32 && endEvent.text.unicode < 128) {
                         playerName += static_cast<char>(endEvent.text.unicode);
                 }
                 }
 
-                // Update displayed text
+                // this is to display the text in the input box
                 nameInputText.setString(playerName);
             }
-            // Submit name (when Enter is pressed)
             if (endEvent.type == Event::KeyPressed) {
-                if (endEvent.key.code == Keyboard::Enter && !playerName.empty()) {
-                    // Here you can add code to save the score, player name, etc.
-                    // For now, we'll just return to the menu
+              if (endEvent.key.code == Keyboard::Enter && !playerName.empty()) {
+                      for(int i = 0; i < MAX_PLAYERS; i++) {
+                      if(leaderboard[i][0].empty() && leaderboard[i][1].empty()) {
+                          leaderboard[i][0] = to_string(playerScore);
+                          leaderboard[i][1] = playerName;
+                          break;
+                  }
+                  }
+                    sortleaderboard(leaderboard, MAX_PLAYERS);
+                    storeleaderboard(leaderboard, MAX_PLAYERS);
+          
                     inGameEnd = false;
                     inMenu = true;
-                    playerName = ""; // Reset for next game
-            
+                    //reseting for nxt game
+                    playerName = ""; 
+                    playerScore = 0;
           }
       }
       }
@@ -391,13 +411,13 @@ int main()
 		// Be vary of the order you call them, SFML draws in order.  //
 		//                                                           //
 		///////////////////////////////////////////////////////////////
-	     
-                honeycombPreGenerator(honeycombX, honeycombY, honeycombActive, honeycombType, MAX_HONEYCOMBS, currentLevel);
+	        cout<<"SCORE: "<<playerScore<<endl;
+                honeycombPreGenerator(honeycombX, honeycombY, honeycombActive, honeycombType, MAX_HONEYCOMBS, currentLevel, honeycombTier);
                 beesGenerator(beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE, currentLevel, beeCount);  
                 movePlayer(player_x, player_y, 0, resolutionX - boxPixelsX, 0.35, flowerCord,flowerActive,MAX_FLOWERS, resetCall, spraycanLives, inMenu);
                 moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  MAX_BEES,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,MAX_HONEYCOMBS, flowerCord, flowerActive, MAX_FLOWERS, beehiveCord, beehiveActive, MAX_BEEHIVES, firstbeeLEFT, firstbeeRIGHT);
                 fireBullet(bullet_x, bullet_y, bullet_exists, player_x, player_y, sprays, spraycanState, spraycanLives);
-                generateHummingbird(hummingbirdX, hummingbirdY, hummingbirdActive, honeycombX, honeycombY, honeycombActive, MAX_HONEYCOMBS, isBirdSick, sickClock, isFlyingToEdge);
+                generateHummingbird(hummingbirdX, hummingbirdY, hummingbirdActive, honeycombX, honeycombY, honeycombActive, MAX_HONEYCOMBS, isBirdSick, sickClock, isFlyingToEdge, playerScore, honeycombTier, honeycombType);
 		if (bullet_exists == true)
 		{       
 			moveBullet(bullet_y, bullet_exists, bulletClock);
@@ -405,7 +425,7 @@ int main()
 			//simple functionality to check if bullet has hit bee
 			//simple functionality to check if bullet hit honeycomb
 			//blah blah hummingbird check
-			if (checkBeeCollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  MAX_HONEYCOMBS)) 
+			if (checkBeeCollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, MAX_BEES, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  MAX_HONEYCOMBS,  playerScore, honeycombTier)) 
 			{
                           bullet_exists = false;			
 			}else if (checkHoneyCombCollision( bullet_x, bullet_y,honeycombX, honeycombY,honeycombType, honeycombActive,  MAX_HONEYCOMBS)){
@@ -436,6 +456,8 @@ int main()
 		drawBeeHive( window, beehiveCord, beehiveActive, MAX_BEEHIVES);
 		drawHummingbird(window, hummingbirdX, hummingbirdY, isBirdSick, hummingbirdActive);
 		detectBees(beeCount, beesActive,inGameEnd, resetCall,MAX_BEES);
+		drawScore( window, playerScore);
+		drawPlayerLives(window, spraycanLives);
 		window.display();
 		window.clear();
 	}
@@ -1021,7 +1043,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
     }
 
     }
-          cout<<hunterBeeCount<<"   :   "<<regularbeeCount<<endl;
+          
 }
 
 // MOVE BEES MOVEEEEEE
@@ -1062,9 +1084,9 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
           }
             // Move horizontally based on direction
             if (beesDirection[i]) {
-                beesX[i] += (beeTypes[i] == WORKER_BEE) ? movement: movement;
+                beesX[i] += movement;
             } else {
-                beesX[i] -= (beeTypes[i] == WORKER_BEE) ? movement: movement;
+                beesX[i] -=movement;
             }
          
          
@@ -1244,16 +1266,17 @@ for (int j = 0; j < MAX_BEEHIVES; j++) {
 }
 
 // Function to check collision between bullet and bees
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
+bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int& playerScore, int honeycombTier[]) {
     for (int i = 0; i < MAX_BEES; i++) {
         if (beesActive[i]) {
-            // Simple collision detection
+            // we detect collision and then generate honey comb 
             if (abs(bullet_x - beesX[i]) < boxPixelsX && 
                 abs(bullet_y - beesY[i]) < boxPixelsY) {
-                // Generate honeycomb when bee is hit
                 generateHoneycomb(beesX[i], beesY[i], beeTypes[i], 
-                                  honeycombX, honeycombY, honeycombType, honeycombActive, MAX_HONEYCOMBS);
+                                  honeycombX, honeycombY, honeycombType, honeycombActive, MAX_HONEYCOMBS, beesTier[i], honeycombTier);
                 
+                //after honey comb is generated, calculate score
+                (beeTypes[i] == WORKER_BEE)? playerScore += 100 : playerScore += 1000;
                 // Bee hit
                 beesActive[i] = false;
                 return true;
@@ -1285,7 +1308,7 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
 
 //generatinggg a honeycomb when a bee is hit
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
-                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
+                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int beeTier, int honeycombTier[]) {
                        
     for (int i = 0; i < MAX_HONEYCOMBS; i++) {
         if (!honeycombActive[i]) {
@@ -1293,13 +1316,14 @@ void generateHoneycomb(float bee_x, float bee_y, int beeType,
             honeycombY[i] = bee_y;
             honeycombType[i] = beeType;
             honeycombActive[i] = true;
+            honeycombTier[i] = beeTier;
             break;
         }
     }
 }
 
 
-void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel) {
+void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[]) {
 
     static bool generated = false;
     // Reset all honeycombs to inactive first
@@ -1324,8 +1348,8 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
             honeycombCount = 3; // Default to level 1 if unexpected level
 }
     for (int i = 0; i < honeycombCount; i++) {
-        // Randomly choose X position (keeping some margin from screen edges)
-        honeycombX[i] = rand() % (resolutionX - 100) + 50; // 50 pixel margin from edges
+        // we choose x position but make sure it is divisble by 32 so that they dont overlap also some margn from edge
+        honeycombX[i] = (rand() % ((resolutionX - 100) / 32)) * 32 + 50;
         // Randomly choose Y position, excluding last two tiers
         int availableTiers = gameRows - 4; // Exclude last two tiers
         int randomTier = rand() % availableTiers;
@@ -1333,6 +1357,7 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
         // Activate the honeycomb
         honeycombActive[i] = true;
         honeycombType[i] = 0;
+        honeycombTier[i] = randomTier;
     }
     generated = true;
   }
@@ -1381,7 +1406,6 @@ bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[],
 
 
 // FLOWERSSSSS
-
 
 bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& firstBeeLEFT, bool& firstBeeRIGHT) {
     //static variables to remember if there has been a first bee or not
@@ -1491,14 +1515,14 @@ void printGameGrid() {
 const float TARGET_REACHED_THRESHOLD = 1.0f;
 void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, 
                          float honeycombX[], float honeycombY[], bool honeycombActive[], 
-                         int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge) {
+                         int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[]) {
 
     static Clock pauseClock;
     static Clock hummingbirdClock;
     static int hummingbirdMovementCount = 0; // Keep track of movement count
-    static float targetX = 0; // Target X position
-    static float targetY = 0; // Target Y position
-    static bool newTargetNeeded = true; // Flag to indicate if a new target is needed
+    static float targetX = 0; 
+    static float targetY = 0; 
+    static bool newTargetNeeded = true; 
     static bool isPaused = false;
 
    if (isFlyingToEdge) {
@@ -1515,18 +1539,18 @@ void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& humming
                 targetX = resolutionX - boxPixelsX;
                 targetY = hummingbirdY;
             }
-            targetCalculated = true; // Prevent recalculation
+            targetCalculated = true; // we are preventing recalculation
         }
 
-        // Move towards the calculated edge
+        // fly to the edge we will increment the speed based on X and Y cords of bird and trget
         float speed = 10.0f; // Speed of the hummingbird
         float deltaTime = 0.016f; // Assuming 60 FPS
         if (hummingbirdX < targetX) {
             hummingbirdX += speed * deltaTime;
-            if (hummingbirdX > targetX) hummingbirdX = targetX;
+            if (hummingbirdX > targetX) hummingbirdX = targetX; //if bird accidentally exceeds the target then snap back to position
         } else {
             hummingbirdX -= speed * deltaTime;
-            if (hummingbirdX < targetX) hummingbirdX = targetX;
+            if (hummingbirdX < targetX) hummingbirdX = targetX; //same as above
         }
 
         if (hummingbirdY < targetY) {
@@ -1539,51 +1563,48 @@ void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& humming
 
         // If the bird has reached the edge, reset its state
         if (abs(hummingbirdX - targetX) < 1.0f && abs(hummingbirdY - targetY) < 1.0f) {
-            isFlyingToEdge = false;  // Reset flying state
-            targetCalculated = false; // Reset for the next flight
-            hummingbirdActive = false; // Despawn the bird
+            isFlyingToEdge = false;  
+            targetCalculated = false; 
+            hummingbirdActive = false; 
         }
     }
 
 
-    // Check if the hummingbird should be generated
+    // all the checks for generating hummingbird
     if (!hummingbirdActive && !isBirdSick && hummingbirdClock.getElapsedTime().asSeconds() >= 4) {
-        // Generate at a random edge
         int edge = rand() % 4; // 0 = left, 1 = right, 2 = top, 3 = bottom
         switch (edge) {
-            case 0: // Left edge
+            case 0: 
                 hummingbirdX = 0;
                 hummingbirdY = rand() % resolutionY;
                 break;
-            case 1: // Right edge
+            case 1: 
                 hummingbirdX = resolutionX - boxPixelsX;
                 hummingbirdY = rand() % resolutionY;
                 break;
-            case 2: // Top edge
+            case 2: 
                 hummingbirdX = rand() % resolutionX;
                 hummingbirdY = 0;
                 break;
-            case 3: // Bottom edge
+            case 3: 
                 hummingbirdX = rand() % resolutionX;
                 hummingbirdY = resolutionY - boxPixelsY;
                 break;
         }
 
         hummingbirdActive = true;
-        hummingbirdMovementCount = 0; // Reset movement count
-        newTargetNeeded = true; // Set flag to generate a new target
+        hummingbirdMovementCount = 0;
+        newTargetNeeded = true; 
     }
-        // Check if bird has been sick for 5 seconds
     if (isBirdSick && sickClock.getElapsedTime().asSeconds() >= 5) {
-        isBirdSick = false; // Heal the bird
+        isBirdSick = false; 
     }
 
 
-    // If the hummingbird is active, move it
-
+    // If the hummingbird is active, fly it
     if (hummingbirdActive) {
         if (newTargetNeeded) {
-            // Generate a new random target position
+            // we see if new position needed
             targetX = rand() % (resolutionX - boxPixelsX);
             targetY = rand() % resolutionY;
             if (targetY >= (gameRows - 3) * boxPixelsY){
@@ -1633,7 +1654,26 @@ void generateHummingbird(float& hummingbirdX, float& hummingbirdY, bool& humming
             for (int i = 0; i < MAX_HONEYCOMBS; i++){
                     if(honeycombActive[i]){
                         if(honeycombX[i] == targetX && honeycombY[i] == targetY){
-                            honeycombActive[i] = false;
+                        cout<<"yo"<<endl;
+                            
+                            // now we assign scores
+                            if (honeycombType[i] == 0){
+                              if(honeycombTier[i] == 0 || honeycombTier[i] == 1){
+                                  playerScore += 1000;
+                                  cout<<"a"<<endl;
+                              }
+                              else if (honeycombTier[i] == 2 || honeycombTier[i] == 3 || honeycombTier[i] == 4){
+                                  playerScore += 800;
+                                  }
+                              else {
+                                    playerScore += 500;
+                                  }
+                              
+                              }
+                              else {
+                               //functionality for red honeycombs
+                              }
+                            honeycombActive[i] = false; 
                           }
                     
                     }  
@@ -1792,4 +1832,106 @@ void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActiv
             window.draw(beehiveSprite);
         }
     }
+}
+
+void drawScore(RenderWindow& window, int playerScore) {
+   Font font;
+   font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+
+   Text scoreText;
+   scoreText.setFont(font);
+   scoreText.setString(to_string(playerScore));
+   scoreText.setCharacterSize(24);
+   scoreText.setFillColor(Color::White);
+   scoreText.setPosition(resolutionX - boxPixelsX*2, (gameRows - 2)*boxPixelsY + 10); //adjusting the score position on screen
+   window.draw(scoreText);
+}
+
+void drawPlayerLives(RenderWindow& window, int spraycanLives) {
+    Texture playerlifeTexture;
+    playerlifeTexture.loadFromFile("Textures/spray.png");
+    Sprite lifeSprites[--spraycanLives]; //display one less life than actual cuz one is in use
+    for (int i = 0; i < spraycanLives; i++) {
+        lifeSprites[i].setTexture(playerlifeTexture);
+        lifeSprites[i].setPosition(32 + (40 *i), (gameRows - 2)*boxPixelsX);
+        window.draw(lifeSprites[i]);
+    }
+}
+
+void readleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
+    ifstream inFile("leaderboard.txt");
+    string name, score;
+    char ch;
+    int index = 0;
+
+    if (!inFile || inFile.peek() == EOF) {
+        return;
+    }
+
+    while (inFile.get(ch) && index < MAX_PLAYERS) {
+        if (ch == ',') {
+            leaderboard[index][0] = name;
+            name = "";
+        } else if (ch == '\n') {
+            leaderboard[index][1] = name;
+            name.clear();
+            index++;
+        } else {
+            name += ch;
+        }
+    }
+
+
+    inFile.close();
+}
+
+
+
+void sortleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
+    // Bubble sort with error handling
+    for (int i = 0; i < MAX_PLAYERS - 1; i++) {
+        for (int j = 0; j < MAX_PLAYERS - i - 1; j++) {
+            // Skip empty entries
+            if (leaderboard[j][0].empty() || leaderboard[j+1][0].empty()) 
+                continue;
+            int score1 = 0, score2 = 0;          
+            // Safe conversion
+            for (char c : leaderboard[j][0]) {
+                if (c >= '0' && c <= '9')
+                    score1 = score1 * 10 + (c - '0');
+            }
+
+            for (char c : leaderboard[j+1][0]) {
+                if (c >= '0' && c <= '9')
+                    score2 = score2 * 10 + (c - '0');
+            }
+            // Swap if needed
+            if (score1 < score2) {
+                string tempScore = leaderboard[j][0];
+                string tempName = leaderboard[j][1];
+                leaderboard[j][0] = leaderboard[j+1][0];
+                leaderboard[j][1] = leaderboard[j+1][1];
+                leaderboard[j+1][0] = tempScore;
+                leaderboard[j+1][1] = tempName;
+            }
+        }
+  }
+}
+
+
+void storeleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
+
+    ofstream file("leaderboard.txt");
+
+    if (!file.is_open()) return;
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (!leaderboard[i][0].empty() && !leaderboard[i][1].empty()) {
+            file << leaderboard[i][0] << "," << leaderboard[i][1] << endl;
+
+        }
+
+    }
+
+    file.close();
+
 }
