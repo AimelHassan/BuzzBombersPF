@@ -4,6 +4,7 @@
 #include <SFML/Audio.hpp>
 #include <fstream>
 #include <ctime>
+#include <string>
 
 using namespace std;
 using namespace sf;
@@ -116,9 +117,9 @@ void callGameEnd( bool& inGameEnd, bool& resetCall);
 void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES,bool& inLevelSwitch,int& sprays, int& currentLevel, Clock& levelSwitchClock);
 void drawScore(RenderWindow& window, int playerScore);
 void drawPlayerLives(RenderWindow& window, int spraycanLives);
-void sortleaderboard(string leaderboard[][2], int MAX_PLAYERS);
-void storeleaderboard(string leaderboard[][2], int MAX_PLAYERS);
-void readleaderboard(string leaderboard[][2], int MAX_PLAYERS);
+void sortleaderboard(char names[][50], int scores[], int max);
+void storeleaderboard(char names[][50], int scores[], int max);
+void readleaderboard(char names[][50], int scores[], int max);
 
 void checkSprayCanLives(int& spraycanLives, bool& inGameEnd, bool& resetCall);
 void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups,float honeycombX, float honeycombY);
@@ -250,9 +251,12 @@ int main(){
 	float player_x = (gameColumns / 2) * boxPixelsX;
 	float player_y = (gameRows - 4) * boxPixelsY;
 	int playerScore = 0;
-        const int MAX_PLAYERS = 100;
-        string leaderboard[MAX_PLAYERS][2];
-        readleaderboard(leaderboard, MAX_PLAYERS);
+        const int players_MAX = 100;
+        const int MAX_LEADERBOARD = 5;
+        char names[MAX_LEADERBOARD][50] = {};
+        int scores[5] = {};
+        int max = 5;
+        readleaderboard(names, scores,max);
         
         
         
@@ -378,14 +382,7 @@ int main(){
         bool gameEnd_State = false;
         bool menu_State = true;
          
-  const int MAX_LEADERBOARD = 5;
-char dummyLeaderboard[MAX_LEADERBOARD][50] = {
-    "HERO1-1500",
-    "GAMEPRO-1350", 
-    "WINNER-1200",
-    "PLAYER-1000",
-    "NEWBIE-800"
-      };
+
 
      
     
@@ -501,7 +498,7 @@ char dummyLeaderboard[MAX_LEADERBOARD][50] = {
                 entryText.setCharacterSize(20);
                 
                 for (int i = 0; i < MAX_LEADERBOARD; i++) {
-                    entryText.setString(to_string(i+1) + ". " + dummyLeaderboard[i]);
+                    entryText.setString(to_string(i+1) + ". " + names[i]);
                     entryText.setPosition(50, 200 + i * 30);
                     window.draw(entryText);
                 }
@@ -2169,76 +2166,76 @@ void drawPlayerLives(RenderWindow& window, int spraycanLives) {
     }
 }
 
-void readleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
-    ifstream inFile("leaderboard.txt");
-    string name, score;
-    char ch;
+using namespace std;
+
+int stringToInt(string str) {
+    int result = 0;
+    for (char c : str) {
+        result = result * 10 + (c - '0');
+    }
+    return result;
+}
+
+void readLeaderboard(char names[][50], int scores[], int max) {
+    ifstream file("leaderboard.txt");
+    string line;
     int index = 0;
 
-    if (!inFile || inFile.peek() == EOF) {
-        return;
-    }
+    while (getline(file, line) && index < max) {
+        int comma = line.find(',');
+        
+        string scoreStr = line.substr(0, comma);
+        scores[index] = stringToInt(scoreStr);
 
-    while (inFile.get(ch) && index < MAX_PLAYERS) {
-        if (ch == ',') {
-            leaderboard[index][0] = name;
-            name = "";
-        } else if (ch == '\n') {
-            leaderboard[index][1] = name;
-            name.clear();
-            index++;
-        } else {
-            name += ch;
+        string name = line.substr(comma + 1);
+        for (int i = 0; i < name.length() && i < 49; ++i) {
+            names[index][i] = name[i];
         }
+        names[index][name.length()] = '\0';
+
+        index++;
     }
-
-
-    inFile.close();
 }
 
+void sortLeaderboard(char names[][50], int scores[], int max) {
+    for (int i = 0; i < max - 1; i++) {
+        for (int j = 0; j < max - i - 1; j++) {
+            if (names[j][0] == 0 || names[j+1][0] == 0) continue;
 
+            if (scores[j] < scores[j+1]) {
+                swap(scores[j], scores[j+1]);
 
-void sortleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
-    // Bubble sort 
-    for (int i = 0; i < MAX_PLAYERS - 1; i++) {
-        for (int j = 0; j < MAX_PLAYERS - i - 1; j++) {
-
-            if (leaderboard[j][0].empty() || leaderboard[j+1][0].empty()) 
-                continue;
-            int score1 = 0, score2 = 0;          
-            for (char c : leaderboard[j][0]) {
-                if (c >= '0' && c <= '9')
-                    score1 = score1 * 10 + (c - '0');
-            }
-
-            for (char c : leaderboard[j+1][0]) {
-                if (c >= '0' && c <= '9')
-                    score2 = score2 * 10 + (c - '0');
-            }
-            if (score1 < score2) {
-                string tempScore = leaderboard[j][0];
-                string tempName = leaderboard[j][1];
-                leaderboard[j][0] = leaderboard[j+1][0];
-                leaderboard[j][1] = leaderboard[j+1][1];
-                leaderboard[j+1][0] = tempScore;
-                leaderboard[j+1][1] = tempName;
+                char tempName[50];
+                for (int k = 0; k < 50; k++) {
+                    tempName[k] = names[j][k];
+                    names[j][k] = names[j+1][k];
+                    names[j+1][k] = tempName[k];
+                }
             }
         }
-  }
+    }
 }
 
-
-void storeleaderboard(string leaderboard[][2], int MAX_PLAYERS) {
+void storeLeaderboard(char names[][50], int scores[], int max) {
     ofstream file("leaderboard.txt");
-    if (!file.is_open()) return;
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (!leaderboard[i][0].empty() && !leaderboard[i][1].empty()) {
-            file << leaderboard[i][0] << "," << leaderboard[i][1] << endl;
 
+    for (int i = 0; i < max; i++) {
+        if (names[i][0] == 0) continue;
+
+        int score = scores[i];
+        string scoreStr = "";
+        
+        if (score == 0) {
+            scoreStr = "0";
+        } else {
+            while (score > 0) {
+                scoreStr = char((score % 10) + '0') + scoreStr;
+                score /= 10;
+            }
         }
 
+        file << scoreStr << "," << names[i] << endl;
     }
-    file.close();
 }
 
 //////////////////////////////////////POWERUPSSSSSSS//////////////////////////////////////////////
