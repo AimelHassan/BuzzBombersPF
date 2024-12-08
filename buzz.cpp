@@ -14,7 +14,7 @@ using namespace sf;
 //        make level switch screen
 //        FIX TELEPORT ISSUE
 //        PERFECT THE SCORING SYSTEM NIGGA
-//        infant bee
+//   GET DONE WITH INFANT BEE
 //BUGS : BEES DISAPPEAR SOMETIMES WHEN HIT A BEEHIVE AND BELOW IS A HONEY COMB, FIX TELEPORTING LOGIC NIGGA THIS SHIT IS SO HARD
 //TODO: GO THROUGH THE CODE AND REFINE IT,  CODE REFACTORING, REMOVING AI COMMENTS, BREAKING DOWN LOGIC INTO SMALLER FUNCTIONS
 // Initializing Dimensions.
@@ -91,32 +91,28 @@ void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupAct
 void powerHandler(float powerTimer[], bool power[], float& sizemultiplier, float& speedmultiplier);
 
 ///infant bee////
-void spawnInfantBees(
-    float beehiveCord[][2], 
-    bool beehiveActive[], 
-    int MAX_BEEHIVES, 
-    float& globalSpawnTimer, 
-    float deltaTime
-);
-void initializeInfantBees(int initialCapacity);
 
-void moveInfantBees(
-    float deltaTime, 
-    float honeycombX[], 
-    float honeycombY[], 
-    bool honeycombActive[], 
-    int MAX_HONEYCOMBS
-);
-void cleanupInfantBees();
-void addInfantBee(float x, float y);
-void expandInfantBeeArrays();
-void drawInfantBee(RenderWindow& window);
+
+
+void initializeinfantBee_arrays(float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees);
+void cleanupInfantBees(float**& infantBeeCordinates, bool*& infantBeesActive,  int maxInfantBees);
+void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees);
+void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees);
+void addInfantBee(float x, float y, float**& infantBeeCordinates, bool*& infantBeesActive, int& maxInfantBees);
+void expandInfantBeeArrays(float**& infantBeeCordinates, bool*& infantBeesActive,  int& maxInfantBees) ;
+void drawInfantBee(RenderWindow& windo, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees) ;
 /////////////////////////////////////////////////////////////////////////////
 //                                                                         //
 // Write your functions declarations here. Some have been written for you. //
 //                                                                         //
 /////////////////////////////////////////////////////////////////////////////
+bool* infantBeesActive = nullptr;    // Dynamic array of active states
+int* infantBeeTimer = nullptr;       // Dynamic array of individual timers
+int maxInfantBees = 1;               // Current maximum capacity
+  
 
+float **infantBeeCordinates = nullptr;
+Clock globalSpawnTimer;
 
 int main(){
 
@@ -276,10 +272,18 @@ int main(){
         
         
         //BEE HIVE 
-        int MAX_BEEHIVES = 100;
+       int MAX_BEEHIVES = 100;
        float beehiveCord[MAX_BEEHIVES][2] = {0};
        bool beehiveActive[MAX_BEEHIVES] = {0};
-
+       float beehiveCooldownTimers[MAX_BEEHIVES] = {5.0f};
+        for (int i = 0; i < MAX_BEEHIVES; ++i) {
+          beehiveCooldownTimers[i] = 0;
+        }
+       bool beehiveCanSpawn[MAX_BEEHIVES];
+       for (int i = 0; i < MAX_BEEHIVES; ++i) {
+          beehiveCanSpawn[i] = true;
+        }
+     
         
       //spray can
       int sprays = 7;
@@ -292,10 +296,10 @@ int main(){
       bool powerupActive[MaxPowerups] = {0};
       float powerupTimer[MaxPowerups] = {0};
       int powerupType[MaxPowerups] = {0};
-        bool power[4] ={0};
-        float speedmultiplier = 1.0f;
-        float sizemultiplier = 1.0f;
-        float powerTimer[4] = {0}; //4 power ups timers
+      bool power[4] ={0};
+      float speedmultiplier = 1.0f;
+      float sizemultiplier = 1.0f;
+      float powerTimer[4] = {0}; //4 power ups timers
 
         
         // Current game level
@@ -320,8 +324,8 @@ int main(){
         enterButtonText.setFillColor(Color::White);
         enterButtonText.setPosition(resolutionX/2, 400);
         
-         float globalInfantBeeSpawnTimer = 0.0f;
-          initializeInfantBees(10);
+  
+          initializeinfantBee_arrays(infantBeeCordinates,  infantBeesActive, maxInfantBees);
           
 	while (window.isOpen() && exit == false) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of thegame loop)
@@ -418,24 +422,9 @@ int main(){
 		//                                                           //
 		///////////////////////////////////////////////////////////////
 		   
+                infantbee_spawner(infantBeeCordinates, infantBeesActive,  beehiveCord, beehiveActive, MAX_BEEHIVES,  beehiveCooldownTimers, beehiveCanSpawn, deltaTime, globalSpawnTimer, maxInfantBees);
+                update_infantBees(deltaTime,honeycombX, honeycombY,  honeycombActive,MAX_HONEYCOMBS, infantBeeCordinates,  infantBeesActive,  maxInfantBees);
 
-                             spawnInfantBees(
-                    beehiveCord, 
-                    beehiveActive, 
-                    MAX_BEEHIVES, 
-                    globalInfantBeeSpawnTimer, 
-                    deltaTime
-                );
-                        moveInfantBees(
-            deltaTime, 
-            honeycombX, 
-            honeycombY, 
-            honeycombActive, 
-            MAX_HONEYCOMBS
-        );
-		cout<<"timer:" <<powerTimer[0]<<endl;
-		cout<<speedmultiplier <<":"<<sizemultiplier<<endl;
-		cout<<power[0]<<" "<<power[1]<<" "<<power[2]<<" "<<power[3]<<endl;
 		powerHandler(powerTimer, power, sizemultiplier, speedmultiplier);
                 updatePowerUps(player_x, player_y,deltaTime, powerupCords,powerupActive,powerupTimer,powerupType, MaxPowerups, power, speedmultiplier, sizemultiplier, powerTimer);
                 honeycombPreGenerator(honeycombX, honeycombY, honeycombActive, honeycombType, MAX_HONEYCOMBS, currentLevel, honeycombTier, beehiveCord, beehiveActive, MAX_BEEHIVES);
@@ -487,14 +476,14 @@ int main(){
                 drawScore( window, playerScore);
 		drawPlayerLives(window, spraycanLives);
 		drawPowerUps(window, powerupCords, powerupActive,  MaxPowerups, powerupType, powerupTimer, powerTimer);
-		 drawInfantBee(window ); 
+		 drawInfantBee(window,infantBeeCordinates,infantBeesActive, maxInfantBees); 
 		window.display();
 		window.clear();
 		
 
 	}
 	}
-	cleanupInfantBees();
+	cleanupInfantBees(infantBeeCordinates,infantBeesActive, maxInfantBees);
  }
  
  
@@ -1009,9 +998,9 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
             break;   
             
       case 4:
-            maxBeeCount = 35;
-            regularBees = 20;
-            hunterBees = 15;
+            maxBeeCount = 0;
+            regularBees = 0;
+            hunterBees = 0;
             break;
     }
     
@@ -1758,7 +1747,7 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
                             if (honeycombType[i] == 0){
                               if(honeycombTier[i] == 0 || honeycombTier[i] == 1){
                                   playerScore += 1000;
-                                  cout<<"a"<<endl;
+                                  
                               }
                               else if (honeycombTier[i] == 2 || honeycombTier[i] == 3 || honeycombTier[i] == 4){
                                   playerScore += 800;
@@ -1889,7 +1878,6 @@ void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbird
 
 //BOYS BEE HIVE TIME
 void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES){
-cout<<"y";
     for (int i = 0; i < MAX_BEEHIVES ; i++) {
         if (!beehiveActive[i]) {
             beehiveCord[i][0] = beeX;
@@ -2247,145 +2235,148 @@ void powerHandler(float powerTimer[], bool power[], float& sizemultiplier, float
           }
       }
     }
-}
-
-
-
-
-
-// Global pointers for infant bee management
-float* infantBeesX = nullptr;       // Dynamic array of X coordinates
-float* infantBeesY = nullptr;        // Dynamic array of Y coordinates
-bool* infantBeesActive = nullptr;    // Dynamic array of active states
-int* infantBeeTimer = nullptr;       // Dynamic array of individual timers
-int maxInfantBees = 0;               // Current maximum capacity
-int currentInfantBeeCount = 0;       // Current number of infant bees
-
-// Initialize infant bee arrays
-void initializeInfantBees(int initialCapacity) {
-    // Allocate initial arrays
-    maxInfantBees = initialCapacity;
     
-    // Allocate dynamic arrays
-    infantBeesX = new float[maxInfantBees];
-    infantBeesY = new float[maxInfantBees];
+    }
+// Global pointers for infant bee management
+     // Dynamic array of Y coordinates
+void initializeinfantBee_arrays(float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees){
+
+  infantBeeCordinates = new float*[maxInfantBees];
+    for(int i = 0; i< maxInfantBees; i++){
+      infantBeeCordinates[i] = new float[2];
+      }
     infantBeesActive = new bool[maxInfantBees];
     infantBeeTimer = new int[maxInfantBees];
     
     // Initialize all to default values
     for (int i = 0; i < maxInfantBees; ++i) {
-        infantBeesX[i] = 0.0f;
-        infantBeesY[i] = 0.0f;
+        infantBeeCordinates[i][0] = 0;
+        infantBeeCordinates[i][1] = 0;
         infantBeesActive[i] = false;
         infantBeeTimer[i] = 0;
     }
 }
 
-// Dynamically expand infant bee arrays
-void expandInfantBeeArrays() {
-    // Calculate new capacity (double the current)
-    int newCapacity = maxInfantBees * 2;
-    
-    // Create temporary arrays
-    float* tempX = new float[newCapacity];
-    float* tempY = new float[newCapacity];
+
+void expandInfantBeeArrays(float**& infantBeeCordinates, bool*& infantBeesActive, int& maxInfantBees) {
+//ok so this function is responsible for expanding the infant bee array by +2ing the capacity
+    int newCapacity = maxInfantBees +2;
+    float** tempCordinates = new float*[newCapacity];
+    for(int i = 0; i< newCapacity; i++){
+      tempCordinates[i] = new float[2];
+      }
     bool* tempActive = new bool[newCapacity];
     int* tempTimer = new int[newCapacity];
     
-    // Copy existing data
+
+    
+    //making sure to replace old values into new expanded array 
+    //NOTE: the new extra slots are intialized to default
     for (int i = 0; i < maxInfantBees; ++i) {
-        tempX[i] = infantBeesX[i];
-        tempY[i] = infantBeesY[i];
+        tempCordinates[i][0] = infantBeeCordinates[i][0];
+        tempCordinates[i][1] = infantBeeCordinates[i][1];
         tempActive[i] = infantBeesActive[i];
-        tempTimer[i] = infantBeeTimer[i];
-    }
+        tempTimer[i] = infantBeeTimer[i];}
     
-    // Initialize new slots
     for (int i = maxInfantBees; i < newCapacity; ++i) {
-        tempX[i] = 0.0f;
-        tempY[i] = 0.0f;
+        tempCordinates[i][0] = 0;
+        tempCordinates[i][1] = 0;
         tempActive[i] = false;
-        tempTimer[i] = 0;
-    }
+        tempTimer[i] = 0;}
     
-    // Free old arrays
-    delete[] infantBeesX;
-    delete[] infantBeesY;
+//over here we are deleting the older array to free up that memory so new expanded array can be referenced to it
+    for (int i = 0; i < maxInfantBees; ++i) {
+      delete[] infantBeeCordinates[i]; }
+    delete[] infantBeeCordinates; 
     delete[] infantBeesActive;
     delete[] infantBeeTimer;
     
-    // Update pointers
-    infantBeesX = tempX;
-    infantBeesY = tempY;
+    //all the assigning is done here
+    infantBeeCordinates = tempCordinates;        
     infantBeesActive = tempActive;
     infantBeeTimer = tempTimer;
-    
-    // Update capacity
     maxInfantBees = newCapacity;
 }
 
-// Add a new infant bee
-void addInfantBee(float x, float y) {
-    // Check if we need to expand arrays
-    if (currentInfantBeeCount >= maxInfantBees) {
-        expandInfantBeeArrays();
-    }
-    
+void addInfantBee(float x, float y, float**& infantBeeCordinates, bool*& infantBeesActive, int& maxInfantBees) {
     // Find first inactive slot
-    int index = -1;
+    int index_first_inactive = -1;
     for (int i = 0; i < maxInfantBees; ++i) {
         if (!infantBeesActive[i]) {
-            index = i;
+            index_first_inactive = i;
             break;
         }
     }
-    
-    // If no inactive slot found, return
-    if (index == -1) return;
-    
-    // Add infant bee
-    infantBeesX[index] = x;
-    infantBeesY[index] = y;
-    infantBeesActive[index] = true;
-    infantBeeTimer[index] = 0;
-    
-    // Increment bee count
-    currentInfantBeeCount++;
+
+    //if no active slot then expand the array and then we did minus 2 since the new inactive slot will be at the end of the new array
+    if (index_first_inactive == -1) {
+        expandInfantBeeArrays(infantBeeCordinates, infantBeesActive, maxInfantBees);
+        index_first_inactive = maxInfantBees - 2;
+    }
+
+    // Everything over here is self explanatory
+    infantBeeCordinates[index_first_inactive][0] = x;
+    infantBeeCordinates[index_first_inactive][1] = y;
+    infantBeesActive[index_first_inactive] = true;
+    infantBeeTimer[index_first_inactive] = 0;
 }
 
 // Move infant bees
-void moveInfantBees(
-    float deltaTime, 
-    float honeycombX[], 
-    float honeycombY[], 
-    bool honeycombActive[], 
-    int MAX_HONEYCOMBS
-) {
-    const float INFANT_BEE_SPEED = 50.0f;
+void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees) {
+    const float INFANT_BEE_SPEED = 30.0f;
+    const float  WOBBLE = 1.0f * deltaTime;
+    static bool wobbleDirection = false; // false is up, then true is down
     
     for (int i = 0; i < maxInfantBees; ++i) {
-        // Only move active infant bees
         if (infantBeesActive[i]) {
-            // Move upward
-            infantBeesY[i] -= INFANT_BEE_SPEED * deltaTime;
+            infantBeeCordinates[i][1] -= INFANT_BEE_SPEED * deltaTime;
+            (wobbleDirection)? infantBeeCordinates[i][1] -= WOBBLE: infantBeeCordinates[i][1] += WOBBLE; // over here we add a WOBBLE to give the bee a wobble effect :p
+    
+            if (infantBeeCordinates[i][1] <= 0) {
+                infantBeesActive[i] = false;
+                continue;  
+            }
             
             // Collision detection
             bool blocked = false;
             for (int j = 0; j < MAX_HONEYCOMBS; ++j) {
                 if (honeycombActive[j]) {
-                    // Simple collision check
-                    if (abs(infantBeesX[i] - honeycombX[j]) < 32 && 
-                        abs(infantBeesY[i] - honeycombY[j]) < 32) {
+                    if (abs(infantBeeCordinates[i][0] - honeycombX[j]) <= 32 && honeycombY[j] < infantBeeCordinates[i][1]) {
                         blocked = true;
                         
-                        // Move left or right
-                        if (infantBeesX[i] > honeycombX[j]) {
-                            infantBeesX[i] -= INFANT_BEE_SPEED * deltaTime;
-                        } else {
-                            infantBeesX[i] += INFANT_BEE_SPEED * deltaTime;
+                        bool leftBlocked = false;
+                        for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                            if (honeycombActive[k] && 
+                                abs(infantBeeCordinates[i][0] - honeycombX[k]) <= 32 && 
+                                honeycombX[k] < infantBeeCordinates[i][0]) {
+                                leftBlocked = true;
+                                break;
+                            }
                         }
-                        break;
-                    }
+                        
+                        bool rightBlocked = false;
+                        for (int k = 0; k < MAX_HONEYCOMBS ;k++) {
+                            if (honeycombActive[k] && 
+                                abs(infantBeeCordinates[i][0] - honeycombX[k]) <= 32 && 
+                                honeycombX[k] > infantBeeCordinates[i][0]) {
+                                rightBlocked = true;
+                                break;
+                            }
+                        }
+                        
+                        if (leftBlocked && rightBlocked) {
+                            cout<<"generating bee hive"<<endl;
+                        }
+                        
+                        if (!leftBlocked && infantBeeCordinates[i][0] > honeycombX[j]) {
+                            infantBeeCordinates[i][0] -= INFANT_BEE_SPEED * deltaTime;
+                        } 
+                        else if (!rightBlocked && infantBeeCordinates[i][0] < honeycombX[j]) {
+                            infantBeeCordinates[i][0] += INFANT_BEE_SPEED * deltaTime;
+                        }
+                    
+                }
+
                 }
             }
             
@@ -2394,48 +2385,63 @@ void moveInfantBees(
     }
 }
 
-// Spawn infant bees
-void spawnInfantBees(
-    float beehiveCord[][2], 
-    bool beehiveActive[], 
-    int MAX_BEEHIVES, 
-    float& globalSpawnTimer, 
-    float deltaTime
-) {
-    const float SPAWN_INTERVAL = 4.0f;
-    globalSpawnTimer += deltaTime;
-    
-    if (globalSpawnTimer >= SPAWN_INTERVAL) {
-        // Find an active beehive
-        for (int i = 0; i < MAX_BEEHIVES; ++i) {
-            if (beehiveActive[i]) {
-                // Spawn at beehive location
-                addInfantBee(beehiveCord[i][0], beehiveCord[i][1]+32);
-                globalSpawnTimer = 0.0f;
-                break;
+void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees){
+    const float MAX_SPAWN_INTERVAL = 4.0f;
+    const float INITIAL_COOLDOWN = 5.0f;
+    const float SHRINK_FACTOR = 0.5f;
+    static int infantBeeCount = 0;
+
+    // ok so this is our infantbee spawn function, 
+    // to keep the game difficultiy but not making it impossible we use a combination of shrink factor and infant bee count as the count increases the timer limit decreases
+    float dynamicSpawnTimer = MAX_SPAWN_INTERVAL - (SHRINK_FACTOR * infantBeeCount);
+    dynamicSpawnTimer = max(2.0f, dynamicSpawnTimer);
+
+
+    if (globalSpawnTimer.getElapsedTime().asSeconds() >= dynamicSpawnTimer) {
+        
+            int random_bee_hive = rand() % MAX_BEEHIVES;
+            if (beehiveActive[random_bee_hive] && beehiveCanSpawn[random_bee_hive]) {
+                addInfantBee(beehiveCord[random_bee_hive][0], beehiveCord[random_bee_hive][1], infantBeeCordinates, infantBeesActive, maxInfantBees);
+                beehiveCanSpawn[random_bee_hive] = false;
+                beehiveCooldownTimers[random_bee_hive] = INITIAL_COOLDOWN;
+                globalSpawnTimer.restart();
+                infantBeeCount++;
+            }
+        
+
+        for (int i = 0; i < MAX_BEEHIVES; i++) {
+            if (beehiveActive[i] && !beehiveCanSpawn[i]) {
+                beehiveCooldownTimers[i] -= deltaTime;
+            }
+            if (beehiveCooldownTimers[i] <= 0) {
+                beehiveCanSpawn[i] = true;
+                beehiveCooldownTimers[i] = 0.0f;
             }
         }
     }
+    else {
+       //do nothing
+    }
 }
-
 // Cleanup function
-void cleanupInfantBees() {
-    // Free all dynamically allocated memory
-    delete[] infantBeesX;
-    delete[] infantBeesY;
-    delete[] infantBeesActive;
-    delete[] infantBeeTimer;
+void cleanupInfantBees(float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees) {
+
+    for (int i = 0; i < maxInfantBees; ++i) {
+        delete[] infantBeeCordinates[i]; 
+    }
     
-    // Reset pointers and counts
-    infantBeesX = nullptr;
-    infantBeesY = nullptr;
+    
+    delete[] infantBeeCordinates; 
+    delete[] infantBeesActive;    
+    delete[] infantBeeTimer;
+    infantBeeCordinates = nullptr;
     infantBeesActive = nullptr;
     infantBeeTimer = nullptr;
     maxInfantBees = 0;
-    currentInfantBeeCount = 0;
+
 }
 
-void drawInfantBee(RenderWindow& window) {
+void drawInfantBee(RenderWindow& window, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees) {
     static Texture beeTexture;
     static bool isTextureLoaded = false;
     static int currentFrame = 0;
@@ -2443,7 +2449,6 @@ void drawInfantBee(RenderWindow& window) {
 
 for (int index = 0; index < maxInfantBees; index++){
     if (infantBeesActive[index]) {
-        // Load the bee texture
         if (!isTextureLoaded) {
             if (!beeTexture.loadFromFile("Sprites/BeeSheet.png")) {
                 return;
@@ -2453,22 +2458,17 @@ for (int index = 0; index < maxInfantBees; index++){
 
         Sprite beeSprite;
         beeSprite.setTexture(beeTexture);
-
-        // Define the 5 frames for the infant bee animation
         IntRect frames[] = {
-            IntRect(0, 0, 32, 32),  // Frame 1
-            IntRect(32, 0, 32, 32),  // Frame 2
-            IntRect(64, 0, 32, 32),  // Frame 3
-            IntRect(96, 0, 32, 32),  // Frame 4
-            IntRect(128, 0, 32, 32)  // Frame 5
+            IntRect(0, 0, 32, 32),  
+            IntRect(32, 0, 32, 32),  
+            IntRect(64, 0, 32, 32), 
+            IntRect(96, 0, 32, 32), 
+            IntRect(128, 0, 32, 32) 
         };
 
-        // Update the current frame and set the sprite's texture rect
         currentFrame = (currentFrame + 1) % 5;
         beeSprite.setTextureRect(frames[currentFrame]);
-
-        // Set position and draw
-        beeSprite.setPosition(infantBeesX[index], infantBeesY[index]);
+        beeSprite.setPosition(infantBeeCordinates[index][0], infantBeeCordinates[index][1]);
         window.draw(beeSprite);
     }
 }
