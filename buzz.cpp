@@ -63,71 +63,31 @@ bool checkBirdCollision(float& hummingbirdX, float& hummingbirdY,
 void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, int beehiveTier[], int beeTier);
 void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES );
 bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES);
-void resetGame(
-    float& player_x, float& player_y, 
-    float& bullet_x, float& bullet_y, 
-    bool& bullet_exists,
-    int& playerScore,
-    int MAX_BEES, 
-    float beesX[], float beesY[], 
-    int beeTypes[], 
-    bool beesActive[], 
-    int beesTier[], 
-    bool beesDirection[],
-    int& beeCount,
-    int& regularbeeCount,
-    int& hunterBeeCount,
-    bool& firstbeeLEFT, 
-    bool& firstbeeRIGHT,
-    int MAX_HONEYCOMBS, 
-    float honeycombX[], 
-    float honeycombY[], 
-    int honeycombType[], 
-    bool honeycombActive[],
-    int MAX_FLOWERS, 
-    int flowerCord[][2], 
-    int flowerActive[],
-    int MAX_BEEHIVES, 
-    float beehiveCord[][2], 
-    bool beehiveActive[],
-    float& hummingbirdX, 
-    float& hummingbirdY, 
-    bool& hummingbirdActive, 
-    bool& isBirdSick, 
-    bool& isFlyingToEdge,
-    Clock& pauseClock,
-    int& currentLevel,
-    int& sprays, 
-    int& spraycanLives, 
-    int& spraycanState,
-    Clock& hunterBeeClock, 
-    Clock& beeClock, 
-    Clock& hummingbirdClock,
-    bool power[], 
-    float powerTimer[],
-    float& speedmultiplier, 
-    float& sizemultiplier,
-    bool& pre_generated,
-    bool& hive_pregenerated,
-    bool beePlantedFlower[]
-);
+void awardCans(int& spraycanLives, int playerScore);
+
+
+void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int MAX_BEES,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int MAX_HONEYCOMBS, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int MAX_FLOWERS, int flowerCord[][2], int flowerActive[],int MAX_BEEHIVES, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]);
+
+
+
 void resetLevel(bool& resetCall, int& spraycanLives, bool& inMenu);
 void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[], float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, bool& generated, bool& hivegenerated);
 void callGameEnd( bool& inGameEnd, bool& resetCall);
-void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES,bool& inLevelSwitch,int& sprays, int& currentLevel, Clock& levelSwitchClock);
+void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore);
 void drawScore(RenderWindow& window, int playerScore);
 void drawPlayerLives(RenderWindow& window, int spraycanLives);
-void sortleaderboard(char names[][50], int scores[], int max);
-void storeleaderboard(char names[][50], int scores[], int max);
-void readleaderboard(char names[][50], int scores[], int max);
+void sortleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
+void storeleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
+void readleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
 
 void checkSprayCanLives(int& spraycanLives, bool& inGameEnd, bool& resetCall);
 void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups,float honeycombX, float honeycombY);
 void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], const int MaxPowerups, bool power[],    float& speedmultiplier,float& sizemultiplier, float powerTimer[]);
 void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int MaxPowerups, int powerupType[], float powerupTimer[], float powerTimer[]);
 void powerHandler(float powerTimer[], bool power[], float& sizemultiplier, float& speedmultiplier);
-void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int MAX_BEEHIVES);
+void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max);
 void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& inGameEnd);
+int stringToInt(string str);
 ///infant bee////
 
 void initializeinfantBee_arrays(float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees);
@@ -252,12 +212,11 @@ int main(){
 	float player_y = (gameRows - 4) * boxPixelsY;
 	int playerScore = 0;
         const int players_MAX = 100;
-        const int MAX_LEADERBOARD = 5;
-        char names[MAX_LEADERBOARD][50] = {};
-        int scores[5] = {};
-        int max = 5;
-        readleaderboard(names, scores,max);
-        
+        const int ld_Positions = 5;
+        char leaderboard_names[ld_Positions][50] = {};
+        int leaderboard_scores[ld_Positions] = {0};
+        readleaderboard(leaderboard_names, leaderboard_scores,ld_Positions);
+        sortleaderboard( leaderboard_names, leaderboard_scores, ld_Positions);
         
         
         
@@ -350,7 +309,7 @@ int main(){
         
       //spray can
       int sprays = 0;
-      int spraycanLives =1;
+      int spraycanLives =3;
       int spraycanState = 0;
       
       //POWER UPS
@@ -385,18 +344,19 @@ int main(){
 
 
      
-    
+
 
         initializeinfantBee_arrays(infantBeeCordinates,  infantBeesActive, maxInfantBees);
           
 	while (window.isOpen() && exit == false) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of thegame loop)
               if (gameEnd_State) {
+
                   Event endEvent;
                   while (window.pollEvent(endEvent)) {
                       if (endEvent.type == Event::Closed) 
                           return 0;
-                      
+
                       if (endEvent.type == Event::MouseButtonPressed) {
                           Vector2i mousePos = Mouse::getPosition(window);
                           
@@ -409,14 +369,48 @@ int main(){
                               nameInputBox.setOutlineColor(Color::White);
                           }
                           
-                          if (mousePos.x >= enterButtonX && mousePos.x <= enterButtonX + enterButtonWidth &&
-                              mousePos.y >= enterButtonY && mousePos.y <= enterButtonY + enterButtonHeight && nameLength != 0) {
-                              cout << playerName << endl;
-                              gameEnd_State = false;
-                              leaderboard_State = true;
-                              playerName[0] = '\0';
-                              nameLength = 0;
-                          }
+                        if (mousePos.x >= enterButtonX && mousePos.x <= enterButtonX + enterButtonWidth &&
+                           mousePos.y >= enterButtonY && mousePos.y <= enterButtonY + enterButtonHeight && nameLength != 0) {
+                           
+                           int freeIndex = -1;
+                           for (int i = 0; i < players_MAX; i++) {
+                               if (leaderboard_names[i][0] == 0) {
+                                   freeIndex = i;
+                                   break;
+                               }
+                           }
+
+                           if (freeIndex == -1) {
+                               int lowestIndex = 0;
+                               for (int i = 1; i < players_MAX; i++) {
+                                   if (leaderboard_scores[i] < leaderboard_scores[lowestIndex]) {
+                                       lowestIndex = i;
+                                   }
+                               }
+
+                               if (playerScore > leaderboard_scores[lowestIndex]) {
+                                   for (int i = 0; i < 50; i++) {
+                                       leaderboard_names[lowestIndex][i] = 0;
+                                   }
+
+                                   for (int i = 0; i < 50 && playerName[i] != 0; i++) {
+                                       leaderboard_names[lowestIndex][i] = playerName[i];
+                                   }
+                                   leaderboard_names[lowestIndex][49] = 0;
+                                   leaderboard_scores[lowestIndex] = playerScore;
+                                   gameEnd_State = false;
+                                   leaderboard_State = true;
+                               }
+                           } else {
+                               for (int i = 0; i < 50 && playerName[i] != 0; i++) {
+                                   leaderboard_names[freeIndex][i] = playerName[i];
+                               }
+                               leaderboard_names[freeIndex][49] = 0;
+                               leaderboard_scores[freeIndex] = playerScore;
+                               gameEnd_State = false;
+                               leaderboard_State = true;
+                           }
+                        }
                       }
                       
                       if (isNameInputActive && endEvent.type == Event::TextEntered) {
@@ -461,6 +455,9 @@ int main(){
                         if (mousePos.x >= exitButtonX && mousePos.x <= exitButtonX + exitButtonWidth &&
                             mousePos.y >= exitButtonY && mousePos.y <= exitButtonY + exitButtonHeight) {
                             leaderboard_State = false;
+                            storeleaderboard( leaderboard_names, leaderboard_scores, ld_Positions);
+                             playerName[0] = '\0';
+                             nameLength = 0;
                             exit = true;
                         }
                     }
@@ -494,14 +491,21 @@ int main(){
                 
                 
                 Text entryText;
+                Text entry2Text;
                 entryText.setFont(menuFont);
                 entryText.setCharacterSize(20);
+                entry2Text.setFont(menuFont);
+                entry2Text.setCharacterSize(20);
                 
-                for (int i = 0; i < MAX_LEADERBOARD; i++) {
-                    entryText.setString(to_string(i+1) + ". " + names[i]);
+                for (int i = 0; i < ld_Positions; i++) {
+                    entryText.setString(to_string(i+1) + ". " + leaderboard_names[i]);
                     entryText.setPosition(50, 200 + i * 30);
                     window.draw(entryText);
+                    entry2Text.setString( "Score: " + to_string(leaderboard_scores[i]));
+                    entry2Text.setPosition(200, 200 + i * 30);
+                    window.draw(entry2Text);
                 }
+
                 
                 RectangleShape exitButton;
                 exitButton.setPosition(50, window.getSize().y - 100);
@@ -688,7 +692,7 @@ int main(){
 			bullet_x = player_x;
 			bullet_y = player_y+64;
 		}
-                
+                awardCans( spraycanLives,playerScore);
 		drawPlayer(window, player_x, player_y, spraycanState, sizemultiplier);
                 drawBees(window, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, bees_Max, WORKER_BEE);
 		window.draw(groundRectangle);
@@ -696,13 +700,12 @@ int main(){
 		drawFlowers(window, flowerCord,flowerActive,flowers_Max);
 		drawBeeHive( window, beehiveCord, beehiveActive, beehives_Max);
 		drawHummingbird(window, hummingbirdX, hummingbirdY, isBirdSick, hummingbirdActive);
-		detectBees(beeCount, beesActive,gameEnd_State,resetCall,bees_Max,levelSwitch_State, sprays, currentLevel, levelSwitchClock);
-	      
+		detectBees(beeCount,  beesActive, gameEnd_State,  resetCall, bees_Max,  levelSwitch_State, sprays, currentLevel, levelSwitchClock, beehiveCord, beehiveActive,beehiveTier, beehives_Max, playerScore);
                 checkSprayCanLives(spraycanLives,gameEnd_State,resetCall) ;
                 drawScore( window, playerScore);
 		drawPlayerLives(window, spraycanLives);
 		drawPowerUps(window, powerupCords, powerupActive,  powerups_Max, powerupType, powerupTimer, powerTimer);
-		 drawInfantBee(window,infantBeeCordinates,infantBeesActive, maxInfantBees); 
+		drawInfantBee(window,infantBeeCordinates,infantBeesActive, maxInfantBees); 
 		window.display();
 		window.clear();
 		
@@ -765,62 +768,17 @@ void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& 
 }
 /////////////START OF MY FUNCTIONS :D//////////////////
 //RESET FUNCTION FOR EVERYTHING --MAKING THIS AFTER SOME TIME BUT PLACING IT AT TOP FOR EASE OF ACCESS
-void resetGame(
-    float& player_x, float& player_y, 
-    float& bullet_x, float& bullet_y, 
-    bool& bullet_exists,
-    int& playerScore,
-    int MAX_BEES, 
-    float beesX[], float beesY[], 
-    int beeTypes[], 
-    bool beesActive[], 
-    int beesTier[], 
-    bool beesDirection[],
-    int& beeCount,
-    int& regularbeeCount,
-    int& hunterBeeCount,
-    bool& firstbeeLEFT, 
-    bool& firstbeeRIGHT,
-    int MAX_HONEYCOMBS, 
-    float honeycombX[], 
-    float honeycombY[], 
-    int honeycombType[], 
-    bool honeycombActive[],
-    int MAX_FLOWERS, 
-    int flowerCord[][2], 
-    int flowerActive[],
-    int MAX_BEEHIVES, 
-    float beehiveCord[][2], 
-    bool beehiveActive[],
-    float& hummingbirdX, 
-    float& hummingbirdY, 
-    bool& hummingbirdActive, 
-    bool& isBirdSick, 
-    bool& isFlyingToEdge,
-    Clock& pauseClock,
-    int& currentLevel,
-    int& sprays, 
-    int& spraycanLives, 
-    int& spraycanState,
-    Clock& hunterBeeClock, 
-    Clock& beeClock, 
-    Clock& hummingbirdClock,
-    bool power[], 
-    float powerTimer[],
-    float& speedmultiplier, 
-    float& sizemultiplier,
-    bool& pre_generated,
-    bool& hive_pregenerated,
-    bool beePlantedFlower[]) {
-    // Reset player variables
+void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int MAX_BEES,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int MAX_HONEYCOMBS, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int MAX_FLOWERS, int flowerCord[][2], int flowerActive[],int MAX_BEEHIVES, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]) {
+    
+    
     player_x = (gameColumns / 2) * boxPixelsX;
     player_y = (gameRows - 4) * boxPixelsY;
     bullet_x = player_x;
     bullet_y = player_y;
     bullet_exists = true;
-    playerScore = 0;
 
-    // Reset bee variables
+
+    
     beeCount = 0;
     regularbeeCount = 0;
     hunterBeeCount = 0;
@@ -828,7 +786,7 @@ void resetGame(
     firstbeeRIGHT = false;
     
 
-    // Safely reset bee arrays with bounds checking
+  
     for (int i = 0; i < MAX_BEES; ++i) {
         if (i < MAX_BEES) {
             beesX[i] = 0;
@@ -841,7 +799,7 @@ void resetGame(
         }
     }
 
-    // Reset honeycomb variables
+    
     for (int i = 0; i < MAX_HONEYCOMBS; ++i) {
         if (i < MAX_HONEYCOMBS) {
             honeycombX[i] = 0;
@@ -853,7 +811,7 @@ void resetGame(
     pre_generated = false;
     hive_pregenerated =false;
 
-    // Reset flower variables
+    
     for (int i = 0; i < MAX_FLOWERS; ++i) {
         if (i < MAX_FLOWERS) {
             flowerCord[i][0] = 0;
@@ -862,7 +820,7 @@ void resetGame(
         }
     }
 
-    // Reset beehive variables
+    
     for (int i = 0; i < MAX_BEEHIVES; ++i) {
         if (i < MAX_BEEHIVES) {
             beehiveCord[i][0] = 0;
@@ -871,23 +829,23 @@ void resetGame(
         }
     }
 
-    // Reset hummingbird variables
+    
     hummingbirdX = -100;
     hummingbirdY = -100;
     hummingbirdActive = false;
     isBirdSick = false;
     isFlyingToEdge = false;
     
-    // Reset game state variables
+    
     sprays = 0;
     spraycanState = 0;
 
-    // Reset clock variables
+  
     hunterBeeClock.restart();
     beeClock.restart();
     hummingbirdClock.restart();
     pauseClock.restart();
-    // Reset power-up variables
+    
     for (int i = 0; i < 4; ++i) {
         power[i] = false;
         powerTimer[i] = 0;
@@ -910,12 +868,14 @@ void resetLevel(bool& resetCall, int&spraycanLives, bool& inGameEnd){
     }
     else {
       inGameEnd = true;
+      resetCall = true;
     }
 }
 
 void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& inGameEnd){
-      if(currentLevel == 3){
-        inGameEnd = true;  
+      if(currentLevel >=4){
+        inGameEnd = true;
+        resetCall = true;
 
       }else{
         resetCall = true;
@@ -925,7 +885,7 @@ void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLe
 }
 }
 
-void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock){
+void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore){
     static bool gameEnded = false;
     bool nobee = true;
 
@@ -941,15 +901,37 @@ void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCal
             cout << "next level in detectBees" << endl;
             levelSwitchClock.restart();
             nextLevel(resetCall, sprays,inLevelSwitch, currentLevel, inGameEnd);
-          
+            beehivescore_handler( playerScore,  beehiveCord, beehiveActive, beehiveTier, beehives_Max);
         }
     }
 }
 
+void awardCans(int& spraycanLives, int playerScore){
 
+  static int num_awards = 0;
+  
+  if(num_awards ==0){
+    if(playerScore == 20000){
+      spraycanLives++;
+      num_awards++;
+    }
+  }
+  else if(num_awards == 1){
+      if(playerScore == 40000){
+      spraycanLives++;
+      num_awards++;
+      }
+  }
+  else if(num_awards >= 2){
+    if (playerScore >= 80000 && (playerScore - 80000) % 80000 == 0) {
+        spraycanLives++;
+        num_awards++;
+    }
+}
+
+}
 
 void checkSprayCanLives(int& spraycanLives, bool& inGameEnd, bool& resetCall) {
-
 static bool gameEnded = false;
 
     if (spraycanLives == 0 && !gameEnded) {
@@ -968,33 +950,40 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
     bool canMoveLeft = true;
     bool forcedMove = false;
     bool teleported = false;
-    const int textureSize = 32;
+    bool playerStepping_Flower = false;
 
-    bool playerOverlappingFlower = false;
 
+/* 
+man i hate teleporting what the heck man khair
+i added comments around harder parts for me to remember and for my future github visitors :D
+
+*/
 
     for (int i = 0; i < MAX_FLOWERS; i++) {
         if (flowerActive[i]) {
             float flowerLeft = flowerCord[i][0];
-            float flowerRight = flowerLeft + textureSize - 1;
+            float flowerRight = flowerLeft + boxPixelsX - 1;
             float playerLeft = player_x;
-            float playerRight = playerLeft + textureSize - 1;
-            
+            float playerRight = playerLeft + boxPixelsX - 1;
+            //the above variables are the flowers "box" defined 
             if (playerRight >= flowerLeft && playerLeft <= flowerRight) {
-                playerOverlappingFlower = true;
+                playerStepping_Flower = true;
                 break;
             }
         }
     }
 
-    if (playerOverlappingFlower) {
-        float possibleMoves[] = {player_x + textureSize, player_x - textureSize};
+
+/*now if there is a player on flower we shall try to move both left and right hence the array 
+no flower on a side then we move to that side */
+    if (playerStepping_Flower) {
+        float possibleMoves[] = {player_x + boxPixelsX, player_x - boxPixelsX};
         bool moveOptions[] = {true, true};
 
         for (int dir = 0; dir < 2; dir++) {
             float newX = possibleMoves[dir];
             
-            if (newX < 0 || newX + textureSize > resolutionX) {
+            if (newX < 0 || newX + boxPixelsX > resolutionX) {
                 moveOptions[dir] = false;
                 continue;
             }
@@ -1002,9 +991,9 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
             for (int i = 0; i < MAX_FLOWERS; i++) {
                 if (flowerActive[i]) {
                     float flowerLeft = flowerCord[i][0];
-                    float flowerRight = flowerLeft + textureSize - 1;
+                    float flowerRight = flowerLeft + boxPixelsX - 1;
                     
-                    if (newX + textureSize - 1 >= flowerLeft && newX <= flowerRight) {
+                    if (newX + boxPixelsX - 1 >= flowerLeft && newX <= flowerRight) {
                         moveOptions[dir] = false;
                         break;
                     }
@@ -1033,10 +1022,10 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
                 if (flowerActive[i]) {
 
                     float flowerLeft = flowerCord[i][0];
-                    float flowerRight = flowerLeft + textureSize + 1;
+                    float flowerRight = flowerLeft + boxPixelsX + 1;
 
                     float playerLeft = NewX;
-                    float playerRight = playerLeft + textureSize - 1;
+                    float playerRight = playerLeft + boxPixelsX - 1;
 
                     if (playerRight >= flowerLeft && playerLeft <= flowerRight) {
                         canMoveLeft = false;
@@ -1066,9 +1055,9 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
             for (int i = 0; i < MAX_FLOWERS; i++) {
                 if (flowerActive[i]) {
                     float flowerLeft = flowerCord[i][0];
-                    float flowerRight = flowerLeft + textureSize - 1;
+                    float flowerRight = flowerLeft + boxPixelsX- 1;
                     float playerLeft = NewX;
-                    float playerRight = playerLeft + textureSize - 1;
+                    float playerRight = playerLeft + boxPixelsX - 1;
                     if (playerRight >= flowerLeft && playerLeft <= flowerRight) {
                         canMoveRight = false;
                         break;
@@ -1087,13 +1076,10 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
     }
 
 
-      bool teleportPossible = false;
-      for (int x = 0; x < gameColumns; x++) {
-          if (gameGrid[gameRows - 3][x] == 0 && gameGrid[gameRows - 4][x] != 1) {
-              teleportPossible = true;
-              break;
-          }
-      }
+/* using bounding box and some boxpixels we check if there is a flower on both sides if there is try to tp to a place
+where no flowers on immediate but if there is no place like this means game ended
+we did this instead of using the above logic because it would not be checking in a good threshold rather we would be stuck
+*/
 
     bool flowerOnImmediateRight = false;
     bool flowerOnImmediateLeft = false;
@@ -1101,10 +1087,10 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
     for (int i = 0; i < MAX_FLOWERS; i++) {
         if (flowerActive[i]) {
             float flowerLeft = flowerCord[i][0]; 
-            float flowerRight = flowerLeft + textureSize - 1;
+            float flowerRight = flowerLeft + boxPixelsX - 1;
 
-            if (player_x + textureSize >= flowerLeft - 5 && 
-                player_x + textureSize <= flowerLeft + textureSize + 5) {
+            if (player_x + boxPixelsX >= flowerLeft - 5 && 
+                player_x + boxPixelsX <= flowerLeft + boxPixelsX + 5) {
                 flowerOnImmediateRight = true;
             }
             
@@ -1118,23 +1104,24 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
           (flowerOnImmediateLeft && player_x <= boundaryLeft) || 
           (flowerOnImmediateRight && player_x >= boundaryRight)) {
           
-          float playerMidpoint = player_x + (textureSize / 2.0f);
+          float playerMidpoint = player_x + (boxPixelsX / 2.0f);
           float closestEmptySpace = -1;
           float minDistance = resolutionX;
 
-
-          for (float potentialX = 0; potentialX <= resolutionX - textureSize; potentialX += 1.0f) {
-              if (potentialX >= player_x && potentialX <= player_x + textureSize - 1) {
+//at first i was using grid but it was misaligned so here we looped through the whole X axis to find a spot
+          for (float potentialX = 0; potentialX <= resolutionX - boxPixelsX; potentialX += 1.0f) {
+              if (potentialX >= player_x && potentialX <= player_x + boxPixelsX - 1) {
+              //skipping the spot of the player
                   continue;
               }
-
+//if a space is free then we need more checks to make sure that the place isnt also surrounded by flowers
               bool spaceIsFree = true;           
               for (int i = 0; i < MAX_FLOWERS; i++) {
                   if (flowerActive[i]) {
                       float flowerLeft = flowerCord[i][0];
-                      float flowerRight = flowerLeft + textureSize - 1;
+                      float flowerRight = flowerLeft + boxPixelsX - 1;
                       float playerTestLeft = potentialX;
-                      float playerTestRight = potentialX + textureSize - 1; 
+                      float playerTestRight = potentialX + boxPixelsX - 1; 
                       if (playerTestRight >= flowerLeft && playerTestLeft <= flowerRight) {
                           spaceIsFree = false;
                           break;}
@@ -1160,7 +1147,7 @@ void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryR
           } else {
               
               cout << "Game End - No Possible Moves" << endl;
-              //resetLevel(resetCall, spraycanLives, inMenu);
+              resetLevel(resetCall, spraycanLives, inMenu);
               
           }
       }
@@ -1253,7 +1240,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
     
      
         
-    int delay = (regularbeeCount < 10) ? 2: 10; // 2 seconds for the first 6, 10 seconds for the rest
+    int delay = (regularbeeCount < 10) ? 2: 6; // 2 seconds for the first 6, 10 seconds for the rest
     int beeNum = (regularbeeCount < 10)? 1 : 2; // 1 bee for first 6, 2 bees for rest
     if (beeClock.getElapsedTime().asSeconds() >= delay && regularbeeCount < regularBees) {
           int newBeesGenerated = 0;
@@ -1297,8 +1284,9 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
         beeClock.restart();
     }
     
+    const float hunterbee_spawntimer = 7.0f;
     if (currentLevel >= 2 && hunterBeeCount < hunterBees) {
-        if (hunterBeeCount == 0 && hunterBeeClock.getElapsedTime().asSeconds() >= 4) {
+        if (hunterBeeCount == 0 && hunterBeeClock.getElapsedTime().asSeconds() >= hunterbee_spawntimer) {
             for (int i = 0; i < MAX_BEES; i++) {
                 if (!beesActive[i]) {
                     beesActive[i] = true;
@@ -1321,7 +1309,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
                 }
             }
         }
-      else if (hunterBeeCount > 0 && hunterBeeClock.getElapsedTime().asSeconds() >= 3 && hunterBeeCount < hunterBees) {
+      else if (hunterBeeCount > 0 && hunterBeeClock.getElapsedTime().asSeconds() >= hunterbee_spawntimer + 3 && hunterBeeCount < hunterBees) {
       int startHunter;
         for (int i = 0; i < MAX_BEES; i++) {
             if (!beesActive[i]) {
@@ -1348,7 +1336,14 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
 // MOVE BEES MOVEEEEEE
 void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]) {
   
-  /* LOGIC EXPLAINATION:   */
+  /* seperated movement for hunter and worker bees so that its easier to manage
+  hunter bees dont collide with obstacles so had to keep them seperate
+  if the bee collides with a honeycomb it just moves down and if there is a honeycomb beneath it makes a beehive
+  it does this by comparing the x and y coordinates of bee and the obstacle
+  for the pause mechanism, pause is triggered randomly if the number is 5 out of 10000 i found these odds to give a good chance of pausing bee wihout over pausing
+  
+  also made sure that after making a flower, the bee exits by reversing the direction this was done by using a new array called beePlantedFlower[]
+  */
   
   
   
@@ -1356,15 +1351,13 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
   static float pauseStartTime[100] = {0}; 
   static bool paused[100] = {false};
   float PAUSE_DURATION = 4.0f;  
-
+  const float bee_Speed = 200.0f;
+  const float hunterbee_Speed = 400.0f;
   
     for (int i = 0; i < MAX_BEES; i++) {
         if (beesActive[i]) {
-        
-            float speed = (beeTypes[i] == WORKER_BEE) ? 400.0f : 500.0f;
-
+            float speed = (beeTypes[i] == WORKER_BEE) ? bee_Speed : hunterbee_Speed;
             float movement = speed * deltaTime;
-            
             if(beeTypes[i] == WORKER_BEE){
                if (paused[i]) {
                   if (BeePauseClock.getElapsedTime().asSeconds() - pauseStartTime[i] >= PAUSE_DURATION) {
@@ -1375,7 +1368,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                     }
               }
         
-            int randomNum = rand() % 10000;
+            int randomNum = rand() % 5000;
             if (randomNum == 5) {
                 paused[i] = true; 
                 pauseStartTime[i] = BeePauseClock.getElapsedTime().asSeconds();
@@ -1387,8 +1380,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
             } else {
                 beesX[i] -=movement;
             }
-         
-         
+
          if(beeTypes[i] == WORKER_BEE){
             bool bounced = false;
             for (int j = 0; j < MAX_HONEYCOMBS; j++) {
@@ -1446,7 +1438,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
         float lastRow = (gameRows - 3) * boxPixelsY;
             if (!bounced) {
               if (beesX[i] <= 0 && beesY[i] < lastRow) {
-                beesX[i] = 0; 
+                beesX[i] = 1; 
                 beesDirection[i] = !beesDirection[i];  
                 
                 float newBeeY = beesY[i] + boxPixelsY;
@@ -1498,6 +1490,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                             beePlantedFlower[i] = false;}  
                     else if (beesY[i] >= lastRow && (beesX[i] <= 0 || beesX[i] >= resolutionX - boxPixelsX)) {
                         beesDirection[i] = !beesDirection[i];
+                        beesX[i] = (beesX[i] <=0)? 1: resolutionX - boxPixelsX - 5;
                     } 
                 }
 
@@ -1508,46 +1501,46 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
 
         }
         
-else {//hunter bee movement
-    float lastRow = (gameRows - 3) * boxPixelsY;
-    
-    if (beesDirection[i]) {
-        beesX[i] += speed * deltaTime;
-    } else {
-        beesX[i] -= speed * deltaTime;
-    }
-    if (beesX[i] <= 0) {
-        beesX[i] = 0;
-        beesDirection[i] = !beesDirection[i];
-        float newBeeY = beesY[i] + boxPixelsY;
-        beesY[i] = newBeeY;
-        beesTier[i]++;
-    }             
-    else if (beesX[i] >= resolutionX - boxPixelsX) {
-        beesX[i] = resolutionX - boxPixelsX;  
-        beesDirection[i] = !beesDirection[i];  
-        float newBeeY = beesY[i] + boxPixelsY;
-        beesY[i] = newBeeY;
-        beesTier[i]++;
-    }
-   
-    if (beesY[i] >= lastRow) {        
-        bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, MAX_FLOWERS, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
-        if (flowerPlanted) {
-            beesDirection[i] = !beesDirection[i];
-            beePlantedFlower[i] = true;
-        }
-        if ((beesX[i] <= 0 || beesX[i] >= resolutionX - boxPixelsX) && beePlantedFlower[i]) {
-            beesActive[i] = false;
-            beePlantedFlower[i] = false;
-        }
-    }
+          else {//hunter bee movement
+              float lastRow = (gameRows - 3) * boxPixelsY;
+              
+              if (beesDirection[i]) {
+                  beesX[i] += speed * deltaTime;
+              } else {
+                  beesX[i] -= speed * deltaTime;
+              }
+              if (beesX[i] <= 0) {
+                  beesX[i] = 0;
+                  beesDirection[i] = !beesDirection[i];
+                  float newBeeY = beesY[i] + boxPixelsY;
+                  beesY[i] = newBeeY;
+                  beesTier[i]++;
+              }             
+              else if (beesX[i] >= resolutionX - boxPixelsX) {
+                  beesX[i] = resolutionX - boxPixelsX;  
+                  beesDirection[i] = !beesDirection[i];  
+                  float newBeeY = beesY[i] + boxPixelsY;
+                  beesY[i] = newBeeY;
+                  beesTier[i]++;
+              }
+             
+              if (beesY[i] >= lastRow) {        
+                  bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, MAX_FLOWERS, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
+                  if (flowerPlanted) {
+                      beesDirection[i] = !beesDirection[i];
+                      beePlantedFlower[i] = true;
+                  }
+                  if ((beesX[i] <= 0 || beesX[i] >= resolutionX - boxPixelsX) && beePlantedFlower[i]) {
+                      beesActive[i] = false;
+                      beePlantedFlower[i] = false;
+                  }
+              }
 
-    if (beesY[i] >= resolutionY) {
+              if (beesY[i] >= resolutionY) {
 
-        beesActive[i] = false;
-      }
-    }
+                  beesActive[i] = false;
+                }
+              }
   }
 }
 }
@@ -1571,10 +1564,13 @@ bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float bees
 }
 
 // Function to draw bees
+
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE) {
-    Texture workerBeeTexture, killerBeeTexture;
+    Texture workerBeeTexture, killerBeeTexture, reversedworkerBeeTexture, reversedkillerBeeTexture;
     workerBeeTexture.loadFromFile("Textures/bee.png");
     killerBeeTexture.loadFromFile("Textures/Fast_bee.png");
+    reversedworkerBeeTexture.loadFromFile("Textures/reversedbee.png");
+    reversedkillerBeeTexture.loadFromFile("Textures/reversedkillerbee.png");
     static int currentFrame= 0;
     Sprite beeSprite;
     IntRect frames[] = {
@@ -1584,14 +1580,21 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
         currentFrame = (currentFrame + 1) % 2;
         beeSprite.setTextureRect(frames[currentFrame]);
     for (int i = 0; i < MAX_BEES; i++) {
-        if (beesActive[i]) {
-            beeSprite.setTexture(beeTypes[i] == WORKER_BEE ? workerBeeTexture : killerBeeTexture);
+         if (beesActive[i]) {
+            if (beeTypes[i] == WORKER_BEE){
+                if(beesDirection[i] == false)// false = left
+                  beeSprite.setTexture(workerBeeTexture);
+                else beeSprite.setTexture(reversedworkerBeeTexture);
+            }
+            else {
+                if(beesDirection[i] == false)// false = left
+                  beeSprite.setTexture(killerBeeTexture);
+                else beeSprite.setTexture(reversedkillerBeeTexture);}
             beeSprite.setPosition(beesX[i], beesY[i]);
-            window.draw(beeSprite);
-        }
+            window.draw(beeSprite);    
+      }
     }
 }
-
 //time for those honey pie i mean honey combs
 
 
@@ -1627,8 +1630,8 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
             honeycombCount = 15;
             break;
         case 4:
-            honeycombCount = 0;
-            beehiveCount = 0;
+            honeycombCount = 15;
+            beehiveCount = 5;
             break;
 }
   
@@ -1639,7 +1642,7 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
         honeycombType[i] = 0;
     }
 
-/*explaining complex logic:*/
+
 
     for (int i = 0; i < honeycombCount; i++) {
         //make sure its divisble by 32
@@ -1735,7 +1738,7 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
         }
         else if (beeX >= resolutionX - boxPixelsX) {
             if (!firstBeeRIGHT) {
-                for (int i = 0; i < MAX_FLOWERS; i++) {
+              for (int i = 0; i < MAX_FLOWERS; i++) {
                     if (!flowerActive[i]) {
                         flowerActive[i] = true;
                         flowerCord[i][0] = static_cast<int>(beeX);
@@ -1752,8 +1755,8 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
         }
         else if (firstBeeLEFT || firstBeeRIGHT) {
             for (int i = 0; i < MAX_FLOWERS; i++) {
-                if (!flowerActive[i] && !beePlantedFlower) {
-                    bool positionOccupied = false;
+              if (!flowerActive[i] && !beePlantedFlower) {
+                 bool positionOccupied = false;
                     for (int j = 0; j < MAX_FLOWERS; j++) {
                         if (flowerActive[j] && 
                             flowerCord[j][0] == static_cast<int>(beeX) && 
@@ -1772,11 +1775,11 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
                         gameGrid[gridY][gridX] = 2; 
                         beePlantedFlower = true;
                         return true;  
-                    }
                 }
             }
         }
-    }
+     }
+  }
     return false;
 }
 return false;}
@@ -1822,8 +1825,9 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
     static bool isPaused = false;
     const float foodreached_THRESHOLD = 1.0f;
     const float birdpause_Duration = 2.0f;
+    const float hummingbirdspawn_timer = 12.0f;
       /* complex logic explaination: 
-      the bird moves based on food location that are calculated everytime they are needed, if the bird is sick the flying to edge bool becomes true and the sequence for the bird to move to edge starts. Every third food is a honeycomb. use pythogras to calc the displace to each honeycomb and find the nearest.
+      the bird moves birdlculated everytime they are needed, if the bird is sick the flying to edge bool becomes true and the sequence for the bird to move to edge starts. Every third food is a honeycomb. use pythogras to calc the displace to each honeycomb and find the nearest.
       */
 
    if (isFlyingToEdge) {
@@ -1842,7 +1846,7 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
           foodCalculated = true; 
       }
 
-      float edgeSpeed = 120.0f; 
+      float edgeSpeed = 300.0f; 
       if (hummingbirdX < foodX) {
           hummingbirdX += edgeSpeed * deltaTime;
           if (hummingbirdX > foodX) hummingbirdX = foodX;
@@ -1867,7 +1871,7 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
       }
     }
 
-    if (!hummingbirdActive && !isBirdSick && hummingbirdClock.getElapsedTime().asSeconds() >= 4) {
+    if (!hummingbirdActive && !isBirdSick && hummingbirdClock.getElapsedTime().asSeconds() >= hummingbirdspawn_timer) {
         int edge = rand() % 4; // 0 = left, 1 = right, 2 = top, 3 = bottom
         switch (edge) {
             case 0: 
@@ -1910,7 +1914,7 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
         }
 
 
-        float speed = 80.0f; 
+        float speed = 150.0f; 
     /////////movement////////////
         if (hummingbirdX < foodX) {
             hummingbirdX += speed * deltaTime;
@@ -2144,7 +2148,7 @@ void drawScore(RenderWindow& window, int playerScore) {
    scoreText.setString(to_string(playerScore));
    scoreText.setCharacterSize(24);
    scoreText.setFillColor(Color::White);
-   scoreText.setPosition(resolutionX - boxPixelsX*2, (gameRows - 2)*boxPixelsY + 10);
+   scoreText.setPosition(resolutionX - boxPixelsX*5, (gameRows - 2)*boxPixelsY + 10);
    window.draw(scoreText);
 }
 
@@ -2166,75 +2170,60 @@ void drawPlayerLives(RenderWindow& window, int spraycanLives) {
     }
 }
 
-using namespace std;
 
-int stringToInt(string str) {
-    int result = 0;
-    for (char c : str) {
-        result = result * 10 + (c - '0');
-    }
-    return result;
-}
+///////////////////////LEADERBOARDS///////////////////////////
 
-void readLeaderboard(char names[][50], int scores[], int max) {
+
+
+void readleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions) {
     ifstream file("leaderboard.txt");
     string line;
     int index = 0;
 
-    while (getline(file, line) && index < max) {
+    while (getline(file, line) && index < ld_Positions) {
         int comma = line.find(',');
         
         string scoreStr = line.substr(0, comma);
-        scores[index] = stringToInt(scoreStr);
-
+        if (scoreStr.empty()) scoreStr = "0";
+        leaderboard_scores[index] = stoi(scoreStr);
         string name = line.substr(comma + 1);
         for (int i = 0; i < name.length() && i < 49; ++i) {
-            names[index][i] = name[i];
+            leaderboard_names[index][i] = name[i];
         }
-        names[index][name.length()] = '\0';
+        leaderboard_names[index][name.length()] = '\0';
 
         index++;
     }
 }
 
-void sortLeaderboard(char names[][50], int scores[], int max) {
-    for (int i = 0; i < max - 1; i++) {
-        for (int j = 0; j < max - i - 1; j++) {
-            if (names[j][0] == 0 || names[j+1][0] == 0) continue;
+void sortleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions) {
+//decided to use bubble sort
+    for (int i = 0; i < ld_Positions - 1; i++) {
+        for (int j = 0; j < ld_Positions - i - 1; j++) {
+            if (leaderboard_names[j][0] == 0 || leaderboard_names[j+1][0] == 0) continue;
 
-            if (scores[j] < scores[j+1]) {
-                swap(scores[j], scores[j+1]);
+            if (leaderboard_scores[j] < leaderboard_scores[j+1]) {
+                swap(leaderboard_scores[j], leaderboard_scores[j+1]);
 
                 char tempName[50];
                 for (int k = 0; k < 50; k++) {
-                    tempName[k] = names[j][k];
-                    names[j][k] = names[j+1][k];
-                    names[j+1][k] = tempName[k];
-                }
-            }
-        }
-    }
+                    tempName[k] = leaderboard_names[j][k];
+                    leaderboard_names[j][k] = leaderboard_names[j+1][k];
+                    leaderboard_names[j+1][k] = tempName[k];}
+                  
+                  }
+              }
+          }
 }
 
-void storeLeaderboard(char names[][50], int scores[], int max) {
+void storeleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions) {
     ofstream file("leaderboard.txt");
 
-    for (int i = 0; i < max; i++) {
-        if (names[i][0] == 0) continue;
-
-        int score = scores[i];
-        string scoreStr = "";
-        
-        if (score == 0) {
-            scoreStr = "0";
-        } else {
-            while (score > 0) {
-                scoreStr = char((score % 10) + '0') + scoreStr;
-                score /= 10;
-            }
-        }
-
-        file << scoreStr << "," << names[i] << endl;
+    for (int i = 0; i < ld_Positions; i++) {
+        if (leaderboard_names[i][0] == 0) continue;
+        int score = leaderboard_scores[i];
+        string scoreStr = to_string(score);
+        file << scoreStr << "," << leaderboard_names[i] << endl;
     }
 }
 
@@ -2242,27 +2231,34 @@ void storeLeaderboard(char names[][50], int scores[], int max) {
 
 void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2], bool powerupActive[], float powerupTimer[], int powerupType[], const int MaxPowerups, bool power[], float& speedmultiplier, float& sizemultiplier, float powerTimer[]) {
     
-    const float FALLINGSPEED = 20.0f * deltaTime;
-    const float POWERUP_SIZE = 32.0f;
+    /* power ups are treated same as a bee, each function call the falling speed is minused from y cordinate and when it reaches the last row it stays there
+    using a switch statement we assign the power up when player collides with it
+    
+    */
+    
+    
+    const float falling_Speed = 20.0f * deltaTime;
+    const float powerup_size = 32.0f;
     const float lastROW = (gameRows - 3) * boxPixelsY;
-    const float TIMER_DECREMENT = 0.002f;
+    const float timer_Decrement = 0.002f;
 
 
     for (int i = 0; i < MaxPowerups; i++) {
         if (powerupActive[i]) {
-            powerupCords[i][1] += FALLINGSPEED;
+            powerupCords[i][1] += falling_Speed;
             if (powerupCords[i][1] >= lastROW) {
                 powerupCords[i][1] = lastROW;
             }
 
             if (powerupCords[i][1] >= lastROW) {
-                powerupTimer[i] -= TIMER_DECREMENT;
+                powerupTimer[i] -= timer_Decrement;
                 if (powerupTimer[i] <= 0) {
                     powerupActive[i] = false; 
                 }
             }
 
-            if (player_x < powerupCords[i][0] + POWERUP_SIZE && player_x + boxPixelsX > powerupCords[i][0] && player_y == powerupCords[i][1]){ 
+            if (player_x < powerupCords[i][0] + powerup_size && player_x + boxPixelsX > powerupCords[i][0] && player_y + boxPixelsX ==powerupCords[i][1]){ 
+              powerupActive[i] = false;
               switch (powerupType[i]) {
                     case 0: 
                         if (power[1]) {
@@ -2317,7 +2313,9 @@ void updatePowerUps(float player_x, float player_y, float deltaTime, float power
    }
 }
 void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int MaxPowerups, int powerupType[], float powerupTimer[], float powerTimer[]) {
-    Texture powerUpTextures[4];
+   /* different colors for every rectangle P*/
+   
+   Texture powerUpTextures[4];
     powerUpTextures[0].loadFromFile("Sprites/Speed_inc.png");
     powerUpTextures[1].loadFromFile("Sprites/Speed_dec.png");
     powerUpTextures[2].loadFromFile("Sprites/Height_inc.png");
@@ -2377,7 +2375,7 @@ void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupT
     }
 }
 void powerHandler(float powerTimer[], bool power[], float& sizemultiplier, float& speedmultiplier) {
-  
+  // this function is needed to disable two same power ups 
     if (power[0] && power[1]) {
         power[0] = false;
         power[1] = false;
@@ -2510,51 +2508,53 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
     const float INFANT_BEE_SPEED = 30.0f;
     const float WOBBLE = 1.0f * deltaTime;
     static bool wobbleDirection = false;
-    /* this function controls the movements of the infant bees 
-                   and all that stuff */
+    /* 
+    I gave wobble to the infant bee to simulate some wobbly infant bee
+    we did some collision detection using bounding box and abs approach
+    and yeah this function just checks deals with infant bee
+    */
     for (int i = 0; i < maxInfantBees; ++i) {
         if (infantBeesActive[i]) {
-          bool blocked = false;
+          bool top_blocked = false;
            for (int j = 0; j < MAX_HONEYCOMBS; ++j) {
                 if (honeycombActive[j]) {
-                //here we have some conditions using bounding box to check if there is a honeycomb above it
                 if (abs(infantBeeCordinates[i][0] - honeycombX[j]) <= 32 && 
                         honeycombY[j] - (infantBeeCordinates[i][1] - 10) <= 1 && 
                         honeycombY[j] - (infantBeeCordinates[i][1] - 10) >= 0) {
-                        blocked = true;              
-                        bool leftBlocked = false;
-                        bool rightBlocked = false;
+                        top_blocked = true;              
+                        bool left_Blocked = false;
+                        bool right_Blocked = false;
                         for (int k = 0; k < MAX_HONEYCOMBS; k++) {
                             if (honeycombActive[k]) {
-                                if (abs(infantBeeCordinates[i][0] - honeycombX[k]) <= 32 && 
+                                if (abs(infantBeeCordinates[i][0] - honeycombX[k]) <= boxPixelsX && 
                                     honeycombX[k] < infantBeeCordinates[i][0]) {
-                                    leftBlocked = true;
+                                    left_Blocked = true;
                                 }
                                 if (abs(infantBeeCordinates[i][0] - honeycombX[k]) <= 32 && 
                                     honeycombX[k] > infantBeeCordinates[i][0]) {
-                                    rightBlocked = true;
+                                    right_Blocked = true;
                               }
                           }
                         }
-                        //over here, if both paths are blocked then generate the bee hive
+                        //calculating infant bee tier for the beehive function
                         int infantBeeTier = (infantBeeCordinates[i][1]/32) + 1;
-                        if (leftBlocked && rightBlocked) {
+                        if (left_Blocked && right_Blocked) {
                             infantBeesActive[i] = false;
                             generateBeeHive( infantBeeCordinates[i][0], infantBeeCordinates[i][1], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES, beehiveTier, infantBeeTier);}
-                        else if (!leftBlocked) {
+                        else if (!left_Blocked) {
                             infantBeeCordinates[i][0] -= INFANT_BEE_SPEED * deltaTime;}
-                        else if (!rightBlocked) {
+                        else if (!right_Blocked) {
                             infantBeeCordinates[i][0] += INFANT_BEE_SPEED * deltaTime;
                         break;}
                    }
                 }
                 }
             
-            if (!blocked) {
+            if (!top_blocked) {
                 infantBeeCordinates[i][1] -= INFANT_BEE_SPEED * deltaTime;
                 (wobbleDirection)? infantBeeCordinates[i][1] -= WOBBLE : infantBeeCordinates[i][1] += WOBBLE; //added a wobble to show organic movement cuz why not :p
                 }
-    //generate a hunter bee when u reach top
+
             if (infantBeeCordinates[i][1] <= 0) {
                 infantBeesActive[i] = false;
                 generate_hunterbee(infantBeeCordinates[i][0], infantBeeCordinates[i][1], MAX_BEES, beesActive, beesDirection, beesTier, beeTypes, beesX, beesY); 
@@ -2565,14 +2565,14 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
 }
 
 void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees){
-    const float MAX_SPAWN_INTERVAL = 4.0f;
+    const float MAX_SPAWN_INTERVAL = 10.0f;
     const float INITIAL_COOLDOWN = 5.0f;
-    const float SHRINK_FACTOR = 0.5f;
+    const float SHRINK_FACTOR = 0.3f;
     static int infantBeeCount = 0;
 
     // to keep the game difficultiy we use a combination of shrink factor and infant bee count as the count increases the timer limit decreases
     float timer_limit = MAX_SPAWN_INTERVAL - (SHRINK_FACTOR * infantBeeCount);
-    timer_limit = max(2.0f, timer_limit);
+    timer_limit = max(5.0f, timer_limit);
 
 //global spawn timer is compared against our dynamic spawn timer
     if (globalSpawnTimer.getElapsedTime().asSeconds() >= timer_limit) {
