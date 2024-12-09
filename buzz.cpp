@@ -33,14 +33,14 @@ void moveBullet(float& bullet_y, bool& bullet_exists, Clock& bulletClock);
 void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& bulletSprite);
 void movePlayer(float& player_x, float player_y, int boundaryLeft,  int boundaryRight,  float speed, int flowerCord[][2], int flowerActive[], const int flowers_Max, bool& resetCall, int& spraycanLives, bool& menu_State);
 void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives, bool& gameEnd_State, bool& resetCall);
-void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentgameLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterbeeCount, Clock& beeClock);
+void bees_generator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentgameLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterbeeCount, Clock& beeClock);
 
 
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max,float beehiveCord[][2], bool beehiveActive[], int beehives_Max,bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]);
+void move_Bees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max,float beehiveCord[][2], bool beehiveActive[], int beehives_Max,bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]);
 
 
 void drawBees(RenderWindow& window);
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]);
+bool check_Beecollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]);
 void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE);
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
@@ -121,6 +121,18 @@ int main(){
 	bgMusic.play();
 	
 	
+	  // Initializing Player and Player Sprites.
+	  bool running = false;
+	  float player_x = (gameColumns / 2) * boxPixelsX;
+	  float player_y = (gameRows - 4) * boxPixelsY;
+	  int playerScore = 0;
+          const int players_MAX = 100;
+          const int ld_Positions = 5;
+          char leaderboard_names[ld_Positions][50] = {};
+          int leaderboard_scores[ld_Positions] = {0};
+          readleaderboard(leaderboard_names, leaderboard_scores,ld_Positions);
+          sortleaderboard( leaderboard_names, leaderboard_scores, ld_Positions);
+          
 	
 	/////////////MENU//////////////////
 	  Font menuFont;
@@ -142,10 +154,13 @@ int main(){
           level3Text.setPosition(resolutionX/2 - level3Text.getLocalBounds().width/2, 270);
           Text level4Text("BOSS LEVEL", menuFont, 30);
           level4Text.setFillColor(Color::Red);
-          level4Text.setPosition(resolutionX/2 - level3Text.getLocalBounds().width/2 - 30, 320);
+          level4Text.setPosition(resolutionX/2 - level4Text.getLocalBounds().width/2, 320);
+          Text LDText("Leaderboard", menuFont, 30);
+          LDText.setFillColor(Color::Yellow);
+          LDText.setPosition(resolutionX/2 - LDText.getLocalBounds().width/2, 380);
           Text exitText("Exit", menuFont, 30);
           exitText.setFillColor(Color::White);
-          exitText.setPosition(resolutionX/2 - exitText.getLocalBounds().width/2, 390);
+          exitText.setPosition(resolutionX/2 - exitText.getLocalBounds().width/2, 440);
           
           
   /////////////////////////GAME END///////////////////////////
@@ -200,20 +215,64 @@ int main(){
     float enterButtonWidth = enterButton.getLocalBounds().width;
     float enterButtonHeight = enterButton.getLocalBounds().height;
     
+  //////////////////LEADERBOARD/////////////////
+          Text currentPlayerText;
+          currentPlayerText.setFont(menuFont);
+          currentPlayerText.setCharacterSize(24);
+          currentPlayerText.setString("Current Player: " + string(playerName));
+          currentPlayerText.setPosition(50, 50);
+ 
+          Text currentScoreText;
+          currentScoreText.setFont(menuFont);
+          currentScoreText.setCharacterSize(24);
+          currentScoreText.setString("Current Score: " + to_string(playerScore));
+          currentScoreText.setPosition(50, 100);
+    
+                
+                Text leaderboardTitle;
+                leaderboardTitle.setFont(menuFont);
+                leaderboardTitle.setCharacterSize(30);
+                leaderboardTitle.setString("Leaderboard");
+                leaderboardTitle.setPosition(50, 150);
+          
+                
+                
+                Text entryText;
+                Text entry2Text;
+                entryText.setFont(menuFont);
+                entryText.setCharacterSize(20);
+                entry2Text.setFont(menuFont);
+                entry2Text.setCharacterSize(20);
+                
+                RectangleShape exitButton;
+                exitButton.setPosition(50, window.getSize().y - 100);
+                exitButton.setSize(Vector2f(100, 50));
+                exitButton.setFillColor(Color::Black);
+                exitButton.setOutlineColor(Color::Red);
+                exitButton.setOutlineThickness(2);
+                
+                RectangleShape menuButton;
+                menuButton.setPosition(300, window.getSize().y - 100);
+                menuButton.setSize(Vector2f(100, 50));
+                menuButton.setFillColor(Color::Black);
+                menuButton.setOutlineColor(Color::Blue);
+                menuButton.setOutlineThickness(2);
+                
+                Text exitLDText;
+                exitLDText.setFont(menuFont);
+                exitLDText.setCharacterSize(20);
+                exitLDText.setString("EXIT");
+                exitLDText.setFillColor(Color::Red);
+                exitLDText.setPosition(70, window.getSize().y - 90);
+                Text menuLDText;
+                menuLDText.setFont(menuFont);
+                menuLDText.setCharacterSize(20);
+                menuLDText.setString("MENU");
+                menuLDText.setFillColor(Color::Blue);
+                menuLDText.setPosition(320, window.getSize().y - 90);
+  
     /////////////////////////////////////////////////////////////////
 
-	// Initializing Player and Player Sprites.
-	bool running = false;
-	float player_x = (gameColumns / 2) * boxPixelsX;
-	float player_y = (gameRows - 4) * boxPixelsY;
-	int playerScore = 0;
-        const int players_MAX = 100;
-        const int ld_Positions = 5;
-        char leaderboard_names[ld_Positions][50] = {};
-        int leaderboard_scores[ld_Positions] = {0};
-        readleaderboard(leaderboard_names, leaderboard_scores,ld_Positions);
-        sortleaderboard( leaderboard_names, leaderboard_scores, ld_Positions);
-        
         
         
 
@@ -240,7 +299,7 @@ int main(){
 
 	RectangleShape groundRectangle(Vector2f(960, 64));
 	groundRectangle.setPosition(0, (gameRows -2) * boxPixelsY);
-	groundRectangle.setFillColor(Color::Red);
+	groundRectangle.setFillColor(Color::Green);
         
         //BEES NIGGA
         int bees_Max= 50;
@@ -447,6 +506,10 @@ int main(){
                         int exitButtonY = window.getSize().y - 100;
                         int exitButtonWidth = 100;
                         int exitButtonHeight = 50;
+                        int menuButtonX = 300;
+                        int menuButtonY = window.getSize().y - 100;
+                        int menuButtonWidth = 100;
+                        int menuButtonHeight = 50;
                         
                       //this one button is responsible for storing in the leaderboard when player exits
                         if (mousePos.x >= exitButtonX && mousePos.x <= exitButtonX + exitButtonWidth &&
@@ -457,43 +520,16 @@ int main(){
                              nameLength = 0;
                             exit = true;
                         }
+                        if (mousePos.x >= menuButtonX && mousePos.x <= menuButtonX + menuButtonWidth &&
+                            mousePos.y >= menuButtonY && mousePos.y <= menuButtonY + menuButtonHeight) {
+                            leaderboard_State = false;
+                            menu_State = true;
+                        }
                     }
                 }
-                
+              
                 window.clear(Color::Black);
-                
-                
-                Text currentPlayerText;
-                currentPlayerText.setFont(menuFont);
-                currentPlayerText.setCharacterSize(24);
-                currentPlayerText.setString("Current Player: " + string(playerName));
-                currentPlayerText.setPosition(50, 50);
-                window.draw(currentPlayerText);
-                
-                
-                Text currentScoreText;
-                currentScoreText.setFont(menuFont);
-                currentScoreText.setCharacterSize(24);
-                currentScoreText.setString("Current Score: " + to_string(playerScore));
-                currentScoreText.setPosition(50, 100);
-                window.draw(currentScoreText);
-                
-                
-                Text leaderboardTitle;
-                leaderboardTitle.setFont(menuFont);
-                leaderboardTitle.setCharacterSize(30);
-                leaderboardTitle.setString("Leaderboard");
-                leaderboardTitle.setPosition(50, 150);
-                window.draw(leaderboardTitle);
-                
-                
-                Text entryText;
-                Text entry2Text;
-                entryText.setFont(menuFont);
-                entryText.setCharacterSize(20);
-                entry2Text.setFont(menuFont);
-                entry2Text.setCharacterSize(20);
-                
+                        
                 for (int i = 0; i < ld_Positions; i++) {
                     entryText.setString(to_string(i+1) + ". " + leaderboard_names[i]);
                     entryText.setPosition(50, 200 + i * 30);
@@ -503,23 +539,13 @@ int main(){
                     window.draw(entry2Text);
                 }
 
-                
-                RectangleShape exitButton;
-                exitButton.setPosition(50, window.getSize().y - 100);
-                exitButton.setSize(Vector2f(100, 50));
-                exitButton.setFillColor(Color::Black);
-                exitButton.setOutlineColor(Color::Red);
-                exitButton.setOutlineThickness(2);
                 window.draw(exitButton);
-                
-                Text exitText;
-                exitText.setFont(menuFont);
-                exitText.setCharacterSize(20);
-                exitText.setString("EXIT");
-                exitText.setFillColor(Color::Red);
-                exitText.setPosition(70, window.getSize().y - 90);
-                window.draw(exitText);
-                
+                window.draw(menuButton);
+                window.draw(currentPlayerText); 
+                window.draw(currentScoreText);
+                window.draw(leaderboardTitle);   
+                window.draw(exitLDText);
+                window.draw(menuLDText);
                 window.display();
             }else if (menu_State) {
                   Event menuEvent;
@@ -563,6 +589,18 @@ int main(){
                               currentLevel = 4;
                               menu_State = false;
                           }
+                          
+                          if (mousePos.x >= LDText.getPosition().x && 
+                              mousePos.x <= LDText.getPosition().x + LDText.getLocalBounds().width &&
+                              mousePos.y >= LDText.getPosition().y && 
+                              mousePos.y <= LDText.getPosition().y + LDText.getLocalBounds().height) {
+                              leaderboard_State = true;
+                              menu_State = false;
+                          }
+                          
+                          
+                          
+                          
                           if (mousePos.x >= exitText.getPosition().x && 
                               mousePos.x <= exitText.getPosition().x + exitText.getLocalBounds().width &&
                               mousePos.y >= exitText.getPosition().y && 
@@ -578,6 +616,7 @@ int main(){
                   window.draw(level2Text);
                   window.draw(level3Text);
                   window.draw(level4Text);
+                  window.draw(LDText);
                   window.draw(exitText);
                   window.display();
                   
@@ -602,7 +641,10 @@ int main(){
                   levelText.setOrigin(textBounds.left + textBounds.width/2.0f, 
                                       textBounds.top + textBounds.height/2.0f);
                   levelText.setPosition(window.getSize().x / 2.0f,window.getSize().y / 2.0f);
-
+                  
+                  
+                    
+                  window.draw(exitButton);
                   window.draw(levelText);
                   window.display();
 
@@ -653,9 +695,9 @@ int main(){
 		powerHandler(powerTimer, power, sizemultiplier, speedmultiplier);
                 updatePowerUps(player_x, player_y,deltaTime, powerupCords,powerupActive,powerupTimer,powerupType, powerups_Max, power, speedmultiplier, sizemultiplier, powerTimer);
                 honeycombPreGenerator(honeycombX, honeycombY, honeycombActive, honeycombType, honeycombs_Max, currentLevel, honeycombTier, beehiveCord, beehiveActive, beehives_Max, pre_generated, hive_pregenerated);
-                beesGenerator(beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, bees_Max, WORKER_BEE, currentLevel, beeCount, resetCall,regularbeeCount, hunterBeeClock, hunterBeeCount,  beeClock);  
+                bees_generator(beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, bees_Max, WORKER_BEE, currentLevel, beeCount, resetCall,regularbeeCount, hunterBeeClock, hunterBeeCount,  beeClock);  
                movePlayer(player_x, player_y, 0, resolutionX - boxPixelsX, 0.5*speedmultiplier, flowerCord,flowerActive,flowers_Max, resetCall, spraycanLives, menu_State);
-                moveBees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  bees_Max,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,honeycombs_Max, flowerCord, flowerActive, flowers_Max, beehiveCord, beehiveActive, beehives_Max, firstbeeLEFT, firstbeeRIGHT, beehiveTier, beePlantedFlower);
+                move_Bees(beesX,beesY, beesTier,  beesDirection, beeTypes,  beesActive,  bees_Max,  deltaTime,  WORKER_BEE, honeycombX, honeycombY,honeycombType,honeycombActive,honeycombs_Max, flowerCord, flowerActive, flowers_Max, beehiveCord, beehiveActive, beehives_Max, firstbeeLEFT, firstbeeRIGHT, beehiveTier, beePlantedFlower);
                 fireBullet(bullet_x, bullet_y, bullet_exists, player_x, player_y, sprays, spraycanState, spraycanLives, gameEnd_State, resetCall);
                 generateHummingbird(deltaTime,hummingbirdX, hummingbirdY, hummingbirdActive, honeycombX, honeycombY, honeycombActive, honeycombs_Max, isBirdSick, sickClock, isFlyingToEdge, playerScore, honeycombTier, honeycombType, hummingbirdClock,powerups_Max,  powerupCords,powerupActive, powerupTimer, powerupType, pauseClock, currentLevel);
 		if (bullet_exists == true)
@@ -665,7 +707,7 @@ int main(){
 			//simple functionality to check if bullet has hit bee
 			//simple functionality to check if bullet hit honeycomb
 			//blah blah hummingbird check
-			if (checkBeeCollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, bees_Max, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  honeycombs_Max,  playerScore, honeycombTier)) 
+			if (check_Beecollision( bullet_x, bullet_y, beesX, beesY ,beeTypes, beesActive, beesTier, beesDirection, bees_Max, WORKER_BEE, honeycombX, honeycombY, honeycombType, honeycombActive,  honeycombs_Max,  playerScore, honeycombTier)) 
 			{
                           bullet_exists = false;			
 			}else if (checkHoneyCombCollision( bullet_x, bullet_y,honeycombX, honeycombY,honeycombType, honeycombActive,  beehives_Max,powerupCords, powerupActive, powerupType,powerupTimer, powerups_Max, currentLevel)){
@@ -853,7 +895,7 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     sizemultiplier = 1.0f;
 }
 void callGameEnd(bool& gameEnd_State, bool& resetCall) {
-    cout << "GAME ENDED B" << endl;
+    cout << "GAME ENDED" << endl;
    gameEnd_State = true;
    resetCall = true;
   
@@ -1205,7 +1247,7 @@ void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float pla
 
 
 // A GODDAMN BEE GENERATORRRRRR
-void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterBeeCount, Clock& beeClock ) {
+void bees_generator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterBeeCount, Clock& beeClock ) {
     int maxBeeCount = 0;
     int regularBees = 0;
     int hunterBees = 0;
@@ -1330,7 +1372,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
 }
 
 // MOVE BEES MOVEEEEEE
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max, float beehiveCord[][2], bool beehiveActive[], int beehives_Max, bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]) {
+void move_Bees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max, float beehiveCord[][2], bool beehiveActive[], int beehives_Max, bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]) {
   
   /* seperated movement for hunter and worker bees so that its easier to manage
   hunter bees dont collide with obstacles so had to keep them seperate
@@ -1542,7 +1584,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
 }
 
 // Function to check collision between bullet and bees
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]) {
+bool check_Beecollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]) {
     for (int i = 0; i < bees_Max; i++) {
         if (beesActive[i]) { 
             if (abs(bullet_x - beesX[i]) < boxPixelsX && 
