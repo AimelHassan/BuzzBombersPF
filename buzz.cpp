@@ -10,10 +10,7 @@ using namespace std;
 using namespace sf;
 
 
-//TODO:   IMPLEMENT:
-//        TEST THE GAME
-//         time left = 3 hrs!!
-//TODO: GO THROUGH THE CODE AND REFINE IT,  CODE REFACTORING, BREAKING DOWN LOGIC INTO SMALLER FUNCTIONS
+//TODO:  ITS ALLLLL DONEEEEEEEE
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
 
@@ -1669,7 +1666,7 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
             break;
         case 4:
             honeycombCount = 15;
-            beehiveCount = 5;
+            beehiveCount = 6;
             break;
 }
   
