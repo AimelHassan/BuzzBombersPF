@@ -11,12 +11,8 @@ using namespace sf;
 
 
 //TODO:   IMPLEMENT:
-//        BONUS CANS
-//        Implement functional leaderboard
 //        TEST THE GAME
-//        fix all end game conditions
 //         time left = 3 hrs!!
-//BUGS : BEES DISAPPEAR SOMETIMES WHEN HIT A BEEHIVE AND BELOW IS A HONEY COMB, FIX TELEPORTING LOGIC NIGGA THIS SHIT IS SO HARD
 //TODO: GO THROUGH THE CODE AND REFINE IT,  CODE REFACTORING, BREAKING DOWN LOGIC INTO SMALLER FUNCTIONS
 // Initializing Dimensions.
 // resolutionX and resolutionY determine the rendering resolution.
@@ -35,69 +31,69 @@ void printGameGrid() ;
 void drawPlayer(RenderWindow& window, float& player_x, float& player_y, int spraycanState, float sizemultiplier);
 void moveBullet(float& bullet_y, bool& bullet_exists, Clock& bulletClock);
 void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& bulletSprite);
-void movePlayer(float& player_x, float player_y, int boundaryLeft,  int boundaryRight,  float speed, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& resetCall, int& spraycanLives, bool& inMenu);
-void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives, bool& inGameEnd, bool& resetCall);
-void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, int currentgameLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterbeeCount, Clock& beeClock);
+void movePlayer(float& player_x, float player_y, int boundaryLeft,  int boundaryRight,  float speed, int flowerCord[][2], int flowerActive[], const int flowers_Max, bool& resetCall, int& spraycanLives, bool& menu_State);
+void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives, bool& gameEnd_State, bool& resetCall);
+void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentgameLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterbeeCount, Clock& beeClock);
 
 
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS,float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES,bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]);
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max,float beehiveCord[][2], bool beehiveActive[], int beehives_Max,bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]);
 
 
 void drawBees(RenderWindow& window);
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int& playerScore, int honeycombTier[]);
-void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE);
+bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]);
+void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE);
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
-                    int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS);             
+                    int honeycombType[], bool honeycombActive[], int honeycombs_Max);             
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
-                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int beeTier, int honeycombTier[]);
-bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups, int currentLevel);
-void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS );
-bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& firstbeeLEFT, bool& firstbeeRIGHT, bool& beePlantedFlower);
-void generateHummingbird(float deltatime,float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[], Clock& hummingbirdClock,const int MaxPowerups,float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], Clock& pauseClock, int currentLevel);
+                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int beeTier, int honeycombTier[]);
+bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int powerups_Max, int currentLevel);
+void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int flowers_Max );
+bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int flowers_Max, bool& firstbeeLEFT, bool& firstbeeRIGHT, bool& beePlantedFlower);
+void generateHummingbird(float deltatime,float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombs_Max, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[], Clock& hummingbirdClock,const int powerups_Max,float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], Clock& pauseClock, int currentLevel);
 void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbirdY, bool isBirdSick, bool hummingbirdActive);
 bool checkBirdCollision(float& hummingbirdX, float& hummingbirdY, 
                         float bulletX, float bulletY,
                         bool& hummingbirdActive, bool& isBirdSick, 
                         int& collidedBulletCount, Clock& sickClock, bool& isFlyingToEdge);
-void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, int beehiveTier[], int beeTier);
-void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES );
-bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES);
+void generateBeeHive(float beeX, float beeY, int bees_Max, float beehiveCord[][2], bool beehiveActive[], int beehives_Max, int beehiveTier[], int beeTier);
+void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int beehives_Max );
+bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int beehives_Max);
 void awardCans(int& spraycanLives, int playerScore);
 
 
-void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int MAX_BEES,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int MAX_HONEYCOMBS, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int MAX_FLOWERS, int flowerCord[][2], int flowerActive[],int MAX_BEEHIVES, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]);
+void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int bees_Max,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int honeycombs_Max, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int flowers_Max, int flowerCord[][2], int flowerActive[],int beehives_Max, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]);
 
 
 
-void resetLevel(bool& resetCall, int& spraycanLives, bool& inMenu);
-void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[], float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, bool& generated, bool& hivegenerated);
-void callGameEnd( bool& inGameEnd, bool& resetCall);
-void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore);
+void resetLevel(bool& resetCall, int& spraycanLives, bool& menu_State);
+void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[], float beehiveCord[][2], bool beehiveActive[], int beehives_Max, bool& generated, bool& hivegenerated);
+void callGameEnd( bool& gameEnd_State, bool& resetCall);
+void detectBees(int& beeCount, bool beeActive[], bool& gameEnd_State, bool& resetCall, int bees_Max, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore);
 void drawScore(RenderWindow& window, int playerScore);
 void drawPlayerLives(RenderWindow& window, int spraycanLives);
 void sortleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
 void storeleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
 void readleaderboard(char leaderboard_names[][50], int leaderboard_scores[], int ld_Positions);
 
-void checkSprayCanLives(int& spraycanLives, bool& inGameEnd, bool& resetCall);
-void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups,float honeycombX, float honeycombY);
-void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], const int MaxPowerups, bool power[],    float& speedmultiplier,float& sizemultiplier, float powerTimer[]);
-void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int MaxPowerups, int powerupType[], float powerupTimer[], float powerTimer[]);
+void checkSprayCanLives(int& spraycanLives, bool& gameEnd_State, bool& resetCall);
+void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int powerups_Max,float honeycombX, float honeycombY);
+void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], const int powerups_Max, bool power[],    float& speedmultiplier,float& sizemultiplier, float powerTimer[]);
+void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int powerups_Max, int powerupType[], float powerupTimer[], float powerTimer[]);
 void powerHandler(float powerTimer[], bool power[], float& sizemultiplier, float& speedmultiplier);
 void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max);
-void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& inGameEnd);
+void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& gameEnd_State);
 int stringToInt(string str);
 ///infant bee////
 
 void initializeinfantBee_arrays(float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees);
 void cleanupInfantBees(float**& infantBeeCordinates, bool*& infantBeesActive,  int maxInfantBees);
-void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees);
-void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees,bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int beeTypes[], float beesX[], float beesY[], float beehiveCord[][2], int MAX_BEEHIVES, bool beehiveActive[], int beehiveTier[]);
+void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int beehives_Max, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees);
+void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombs_Max, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees,bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int beeTypes[], float beesX[], float beesY[], float beehiveCord[][2], int beehives_Max, bool beehiveActive[], int beehiveTier[]);
 void addInfantBee(float x, float y, float**& infantBeeCordinates, bool*& infantBeesActive, int& maxInfantBees);
 void expandInfantBeeArrays(float**& infantBeeCordinates, bool*& infantBeesActive,  int& maxInfantBees) ;
 void drawInfantBee(RenderWindow& windo, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees);
-void generate_hunterbee(float infantBeeX, float infantBeeY,  int MAX_BEES, bool beesActive[], bool beesDirection[], int beesTier[], int beeTypes[], float beesX[], float beesY[]); 
+void generate_hunterbee(float infantBeeX, float infantBeeY,  int bees_Max, bool beesActive[], bool beesDirection[], int beesTier[], int beeTypes[], float beesX[], float beesY[]); 
 bool checkInfantBeeCollision(float**& infantBeeCordinates, bool*& infantBeesActive, float bulletX, float bulletY, int& maxInfantBees, int& playerScore);
 
 /////////////////////////////////////////////////////////////////////////////
@@ -350,8 +346,9 @@ int main(){
           
 	while (window.isOpen() && exit == false) {
         float deltaTime = movementClock.restart().asSeconds(); //gets the time between each frame reload (every run of thegame loop)
+        
+        /*over here we have our game states that dynamically switch based on game input*/
               if (gameEnd_State) {
-
                   Event endEvent;
                   while (window.pollEvent(endEvent)) {
                       if (endEvent.type == Event::Closed) 
@@ -371,7 +368,7 @@ int main(){
                           
                         if (mousePos.x >= enterButtonX && mousePos.x <= enterButtonX + enterButtonWidth &&
                            mousePos.y >= enterButtonY && mousePos.y <= enterButtonY + enterButtonHeight && nameLength != 0) {
-                           
+                           // once user clicks the enter button the name is added to the leaderboard array, we find the free index and then assign the char array to the leadderboard array
                            int freeIndex = -1;
                            for (int i = 0; i < players_MAX; i++) {
                                if (leaderboard_names[i][0] == 0) {
@@ -451,7 +448,7 @@ int main(){
                         int exitButtonWidth = 100;
                         int exitButtonHeight = 50;
                         
-                      
+                      //this one button is responsible for storing in the leaderboard when player exits
                         if (mousePos.x >= exitButtonX && mousePos.x <= exitButtonX + exitButtonWidth &&
                             mousePos.y >= exitButtonY && mousePos.y <= exitButtonY + exitButtonHeight) {
                             leaderboard_State = false;
@@ -768,8 +765,10 @@ void drawBullet(RenderWindow& window, float& bullet_x, float& bullet_y, Sprite& 
 }
 /////////////START OF MY FUNCTIONS :D//////////////////
 //RESET FUNCTION FOR EVERYTHING --MAKING THIS AFTER SOME TIME BUT PLACING IT AT TOP FOR EASE OF ACCESS
-void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int MAX_BEES,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int MAX_HONEYCOMBS, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int MAX_FLOWERS, int flowerCord[][2], int flowerActive[],int MAX_BEEHIVES, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]) {
+void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet_y,  bool& bullet_exists, int& playerScore,int bees_Max,  float beesX[], float beesY[],  int beeTypes[],  bool beesActive[],  int beesTier[], bool beesDirection[], int& beeCount,int& regularbeeCount,int& hunterBeeCount,bool& firstbeeLEFT, bool& firstbeeRIGHT,int honeycombs_Max, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[],int flowers_Max, int flowerCord[][2], int flowerActive[],int beehives_Max, float beehiveCord[][2], bool beehiveActive[],float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, bool& isBirdSick, bool& isFlyingToEdge,Clock& pauseClock,int& currentLevel,int& sprays, int& spraycanLives, int& spraycanState,Clock& hunterBeeClock, Clock& beeClock, Clock& hummingbirdClock,bool power[], float powerTimer[],float& speedmultiplier, float& sizemultiplier,bool& pre_generated,bool& hive_pregenerated,bool beePlantedFlower[]) {
     
+    
+    /*made this function to reset all game variables to starting conditions*/
     
     player_x = (gameColumns / 2) * boxPixelsX;
     player_y = (gameRows - 4) * boxPixelsY;
@@ -787,8 +786,8 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     
 
   
-    for (int i = 0; i < MAX_BEES; ++i) {
-        if (i < MAX_BEES) {
+    for (int i = 0; i < bees_Max; ++i) {
+        if (i < bees_Max) {
             beesX[i] = 0;
             beesY[i] = 0;
             beeTypes[i] = 0;
@@ -800,8 +799,8 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     }
 
     
-    for (int i = 0; i < MAX_HONEYCOMBS; ++i) {
-        if (i < MAX_HONEYCOMBS) {
+    for (int i = 0; i < honeycombs_Max; ++i) {
+        if (i < honeycombs_Max) {
             honeycombX[i] = 0;
             honeycombY[i] = 0;
             honeycombType[i] = 0;
@@ -812,8 +811,8 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     hive_pregenerated =false;
 
     
-    for (int i = 0; i < MAX_FLOWERS; ++i) {
-        if (i < MAX_FLOWERS) {
+    for (int i = 0; i < flowers_Max; ++i) {
+        if (i < flowers_Max) {
             flowerCord[i][0] = 0;
             flowerCord[i][1] = 0;
             flowerActive[i] = 0;
@@ -821,8 +820,8 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     }
 
     
-    for (int i = 0; i < MAX_BEEHIVES; ++i) {
-        if (i < MAX_BEEHIVES) {
+    for (int i = 0; i < beehives_Max; ++i) {
+        if (i < beehives_Max) {
             beehiveCord[i][0] = 0;
             beehiveCord[i][1] = 0;
             beehiveActive[i] = false;
@@ -853,28 +852,28 @@ void resetGame(float& player_x, float& player_y,  float& bullet_x, float& bullet
     speedmultiplier = 1.0f;
     sizemultiplier = 1.0f;
 }
-void callGameEnd(bool& inGameEnd, bool& resetCall) {
+void callGameEnd(bool& gameEnd_State, bool& resetCall) {
     cout << "GAME ENDED B" << endl;
-   inGameEnd = true;
+   gameEnd_State = true;
    resetCall = true;
   
 
 }
-void resetLevel(bool& resetCall, int&spraycanLives, bool& inGameEnd){
+void resetLevel(bool& resetCall, int&spraycanLives, bool& gameEnd_State){
 
     if (spraycanLives > 0) {
         spraycanLives--;
         resetCall = true;
     }
     else {
-      inGameEnd = true;
+      gameEnd_State = true;
       resetCall = true;
     }
 }
 
-void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& inGameEnd){
+void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLevel, bool& gameEnd_State){
       if(currentLevel >=4){
-        inGameEnd = true;
+        gameEnd_State = true;
         resetCall = true;
 
       }else{
@@ -885,11 +884,11 @@ void nextLevel(bool& resetCall, int& sprays, bool& inLevelSwitch, int& currentLe
 }
 }
 
-void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCall, int MAX_BEES, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore){
+void detectBees(int& beeCount, bool beeActive[], bool& gameEnd_State, bool& resetCall, int bees_Max, bool& inLevelSwitch, int& sprays, int& currentLevel,Clock& levelSwitchClock, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max, int& playerScore){
     static bool gameEnded = false;
     bool nobee = true;
-
-    for(int i = 0; i < MAX_BEES; i++){
+//detect bees if there are no bees active AND the count is reached for a level to be complete that means all bees dead so we go to next level
+    for(int i = 0; i < bees_Max; i++){
         if (beeActive[i]) {
             nobee = false;
             break;
@@ -900,14 +899,14 @@ void detectBees(int& beeCount, bool beeActive[], bool& inGameEnd, bool& resetCal
         if(nobee && !gameEnded){
             cout << "next level in detectBees" << endl;
             levelSwitchClock.restart();
-            nextLevel(resetCall, sprays,inLevelSwitch, currentLevel, inGameEnd);
+            nextLevel(resetCall, sprays,inLevelSwitch, currentLevel, gameEnd_State);
             beehivescore_handler( playerScore,  beehiveCord, beehiveActive, beehiveTier, beehives_Max);
         }
     }
 }
 
 void awardCans(int& spraycanLives, int playerScore){
-
+//can awaring system les gooooo
   static int num_awards = 0;
   
   if(num_awards ==0){
@@ -931,19 +930,18 @@ void awardCans(int& spraycanLives, int playerScore){
 
 }
 
-void checkSprayCanLives(int& spraycanLives, bool& inGameEnd, bool& resetCall) {
+void checkSprayCanLives(int& spraycanLives, bool& gameEnd_State, bool& resetCall) {
 static bool gameEnded = false;
-
     if (spraycanLives == 0 && !gameEnded) {
-        cout << "Game End Called due to no spray can lives." << endl;
-        callGameEnd(inGameEnd, resetCall);
+        cout << "no spray can lives." << endl;
+        callGameEnd(gameEnd_State, resetCall);
         gameEnded = true; 
     }
 
 }
 
 //time to make function to move the player
-void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryRight, float speed, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& resetCall, int& spraycanLives,bool& inMenu) {
+void movePlayer(float& player_x, float player_y, int boundaryLeft, int boundaryRight, float speed, int flowerCord[][2], int flowerActive[], const int flowers_Max, bool& resetCall, int& spraycanLives,bool& menu_State) {
     int oldGridX = static_cast<int>(player_x) / boxPixelsX;
     int oldGridY = static_cast<int>(player_y) / boxPixelsY;
     bool canMoveRight = true;
@@ -959,7 +957,7 @@ i added comments around harder parts for me to remember and for my future github
 
 */
 
-    for (int i = 0; i < MAX_FLOWERS; i++) {
+    for (int i = 0; i < flowers_Max; i++) {
         if (flowerActive[i]) {
             float flowerLeft = flowerCord[i][0];
             float flowerRight = flowerLeft + boxPixelsX - 1;
@@ -988,7 +986,7 @@ no flower on a side then we move to that side */
                 continue;
             }
 
-            for (int i = 0; i < MAX_FLOWERS; i++) {
+            for (int i = 0; i < flowers_Max; i++) {
                 if (flowerActive[i]) {
                     float flowerLeft = flowerCord[i][0];
                     float flowerRight = flowerLeft + boxPixelsX - 1;
@@ -1018,7 +1016,7 @@ no flower on a side then we move to that side */
             float NewX = player_x - speed;
             canMoveLeft = true;
 
-            for (int i = 0; i < MAX_FLOWERS; i++) {
+            for (int i = 0; i < flowers_Max; i++) {
                 if (flowerActive[i]) {
 
                     float flowerLeft = flowerCord[i][0];
@@ -1052,7 +1050,7 @@ no flower on a side then we move to that side */
             float NewX = player_x + speed;
             canMoveRight = true;
 
-            for (int i = 0; i < MAX_FLOWERS; i++) {
+            for (int i = 0; i < flowers_Max; i++) {
                 if (flowerActive[i]) {
                     float flowerLeft = flowerCord[i][0];
                     float flowerRight = flowerLeft + boxPixelsX- 1;
@@ -1084,7 +1082,7 @@ we did this instead of using the above logic because it would not be checking in
     bool flowerOnImmediateRight = false;
     bool flowerOnImmediateLeft = false;
 
-    for (int i = 0; i < MAX_FLOWERS; i++) {
+    for (int i = 0; i < flowers_Max; i++) {
         if (flowerActive[i]) {
             float flowerLeft = flowerCord[i][0]; 
             float flowerRight = flowerLeft + boxPixelsX - 1;
@@ -1116,7 +1114,7 @@ we did this instead of using the above logic because it would not be checking in
               }
 //if a space is free then we need more checks to make sure that the place isnt also surrounded by flowers
               bool spaceIsFree = true;           
-              for (int i = 0; i < MAX_FLOWERS; i++) {
+              for (int i = 0; i < flowers_Max; i++) {
                   if (flowerActive[i]) {
                       float flowerLeft = flowerCord[i][0];
                       float flowerRight = flowerLeft + boxPixelsX - 1;
@@ -1147,7 +1145,7 @@ we did this instead of using the above logic because it would not be checking in
           } else {
               
               cout << "Game End - No Possible Moves" << endl;
-              resetLevel(resetCall, spraycanLives, inMenu);
+              resetLevel(resetCall, spraycanLives, menu_State);
               
           }
       }
@@ -1174,13 +1172,11 @@ we did this instead of using the above logic because it would not be checking in
 
 
 //bullet boom boom
-void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives, bool& inGameEnd, bool& resetCall) {
+void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float player_x, float player_y, int& sprays, int& spraycanState, int& spraycanLives, bool& gameEnd_State, bool& resetCall) {
     static bool wasSpacePressed = false; 
     static int totalSprays = 0;
     bool isSpacePressed = Keyboard::isKeyPressed(Keyboard::Space);
     static bool gameEndCalled = false;
-
-
 
     if (isSpacePressed && !wasSpacePressed && !bullet_exists) {
         bullet_exists = true;
@@ -1209,7 +1205,7 @@ void fireBullet(float& bullet_x, float& bullet_y, bool& bullet_exists, float pla
 
 
 // A GODDAMN BEE GENERATORRRRRR
-void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, int currentLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterBeeCount, Clock& beeClock ) {
+void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, int currentLevel, int& beeCount, bool resetCall, int& regularbeeCount, Clock& hunterBeeClock, int& hunterBeeCount, Clock& beeClock ) {
     int maxBeeCount = 0;
     int regularBees = 0;
     int hunterBees = 0;
@@ -1247,7 +1243,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
           int startPoint = 1;
           int beesToGenerate = min(beeNum, regularBees - regularbeeCount);
 
-        for (int i = 0; i < MAX_BEES && newBeesGenerated < beesToGenerate; i++) {
+        for (int i = 0; i < bees_Max && newBeesGenerated < beesToGenerate; i++) {
             if (!beesActive[i]) {
                 if (delay == 2){
                 beesActive[i] = true;
@@ -1287,7 +1283,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
     const float hunterbee_spawntimer = 7.0f;
     if (currentLevel >= 2 && hunterBeeCount < hunterBees) {
         if (hunterBeeCount == 0 && hunterBeeClock.getElapsedTime().asSeconds() >= hunterbee_spawntimer) {
-            for (int i = 0; i < MAX_BEES; i++) {
+            for (int i = 0; i < bees_Max; i++) {
                 if (!beesActive[i]) {
                     beesActive[i] = true;
                     beeTypes[i] = 1;
@@ -1311,7 +1307,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
         }
       else if (hunterBeeCount > 0 && hunterBeeClock.getElapsedTime().asSeconds() >= hunterbee_spawntimer + 3 && hunterBeeCount < hunterBees) {
       int startHunter;
-        for (int i = 0; i < MAX_BEES; i++) {
+        for (int i = 0; i < bees_Max; i++) {
             if (!beesActive[i]) {
                 beesActive[i] = true;
                 beeTypes[i] = 1;
@@ -1334,7 +1330,7 @@ void beesGenerator(float beesX[], float beesY[], int beeTypes[], bool beesActive
 }
 
 // MOVE BEES MOVEEEEEE
-void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int MAX_BEES, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]) {
+void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[], int beeTypes[], bool beesActive[], int bees_Max, float deltaTime, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int flowerCord[][2], int flowerActive[], const int flowers_Max, float beehiveCord[][2], bool beehiveActive[], int beehives_Max, bool& firstbeeLEFT, bool& firstbeeRIGHT, int beehiveTier[], bool beePlantedFlower[]) {
   
   /* seperated movement for hunter and worker bees so that its easier to manage
   hunter bees dont collide with obstacles so had to keep them seperate
@@ -1354,7 +1350,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
   const float bee_Speed = 200.0f;
   const float hunterbee_Speed = 400.0f;
   
-    for (int i = 0; i < MAX_BEES; i++) {
+    for (int i = 0; i < bees_Max; i++) {
         if (beesActive[i]) {
             float speed = (beeTypes[i] == WORKER_BEE) ? bee_Speed : hunterbee_Speed;
             float movement = speed * deltaTime;
@@ -1383,7 +1379,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
 
          if(beeTypes[i] == WORKER_BEE){
             bool bounced = false;
-            for (int j = 0; j < MAX_HONEYCOMBS; j++) {
+            for (int j = 0; j < honeycombs_Max; j++) {
                 if (honeycombActive[j]) {
                     if (abs(beesX[i] - honeycombX[j]) < boxPixelsX && abs(beesY[i] - honeycombY[j])<boxPixelsY){
                         beesX[i] = (beesDirection[i]) ? honeycombX[j] - boxPixelsX : honeycombX[j] + boxPixelsX; 
@@ -1393,10 +1389,10 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                             float newBeeY = beesY[i] + boxPixelsY;
                             bool honeycombBelow = false; 
                             
-                          for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                          for (int k = 0; k < honeycombs_Max; k++) {
                                 if (honeycombActive[k] && abs(beesX[i] - honeycombX[k]) < boxPixelsX && abs(newBeeY - honeycombY[k]) < boxPixelsY) {
                                     honeycombBelow = true;
-                                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES, beehiveTier, beesTier[i]);
+                                    generateBeeHive(beesX[i],  beesY[i], bees_Max,  beehiveCord,beehiveActive, beehives_Max, beehiveTier, beesTier[i]);
                                     beesActive[i] = false;
                                     cout<<"x";
                                     break;
@@ -1415,7 +1411,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
             }
                       
           //collision with bee hive
-          for (int j = 0; j < MAX_BEEHIVES; j++) {
+          for (int j = 0; j < beehives_Max; j++) {
               if (beehiveActive[j]) {
                   if (abs(beesX[i] - beehiveCord[j][0]) < boxPixelsX && abs(beesY[i] - beehiveCord[j][1]) < boxPixelsY) {
                       beesX[i] = (beesDirection[i]) ? 
@@ -1443,10 +1439,10 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                 
                 float newBeeY = beesY[i] + boxPixelsY;
                 bool honeycombBelow = false;            
-                for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                for (int k = 0; k < honeycombs_Max; k++) {
                 if (honeycombActive[k] && abs(beesX[i] - honeycombX[k]) < boxPixelsX && abs(newBeeY - honeycombY[k]) < boxPixelsY) {
                     honeycombBelow = true;
-                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES, beehiveTier, beesTier[i]);
+                    generateBeeHive(beesX[i],  beesY[i], bees_Max,  beehiveCord,beehiveActive, beehives_Max, beehiveTier, beesTier[i]);
                     beesActive[i] = false;
                     cout<<"x";
                     break;
@@ -1463,10 +1459,10 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
                 beesDirection[i] = !beesDirection[i];  
                 float newBeeY = beesY[i] + boxPixelsY;
                 bool honeycombBelow = false;         
-                for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                for (int k = 0; k < honeycombs_Max; k++) {
                 if (honeycombActive[k] && abs(beesX[i] - honeycombX[k]) < boxPixelsX && abs(newBeeY - honeycombY[k]) < boxPixelsY) {
                     honeycombBelow = true;
-                    generateBeeHive(beesX[i],  beesY[i], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES, beehiveTier, beesTier[i]);
+                    generateBeeHive(beesX[i],  beesY[i], bees_Max,  beehiveCord,beehiveActive, beehives_Max, beehiveTier, beesTier[i]);
                     beesActive[i] = false;
                     cout<<"x";
                     break;
@@ -1481,7 +1477,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
              }
            
                 if (beesY[i] >= lastRow) {
-                    bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, MAX_FLOWERS, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
+                    bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, flowers_Max, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
                     if (flowerPlanted) {
                         beesDirection[i] = !beesDirection[i];
                         beePlantedFlower[i] = true;}
@@ -1525,7 +1521,7 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
               }
              
               if (beesY[i] >= lastRow) {        
-                  bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, MAX_FLOWERS, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
+                  bool flowerPlanted = flowerGenerator(beesX[i], beesY[i], flowerCord, flowerActive, flowers_Max, firstbeeRIGHT, firstbeeLEFT, beePlantedFlower[i]);
                   if (flowerPlanted) {
                       beesDirection[i] = !beesDirection[i];
                       beePlantedFlower[i] = true;
@@ -1546,13 +1542,13 @@ void moveBees(float beesX[], float beesY[], int beesTier[], bool beesDirection[]
 }
 
 // Function to check collision between bullet and bees
-bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, int& playerScore, int honeycombTier[]) {
-    for (int i = 0; i < MAX_BEES; i++) {
+bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, int& playerScore, int honeycombTier[]) {
+    for (int i = 0; i < bees_Max; i++) {
         if (beesActive[i]) { 
             if (abs(bullet_x - beesX[i]) < boxPixelsX && 
                 abs(bullet_y - beesY[i]) < boxPixelsY) {
                 generateHoneycomb(beesX[i], beesY[i], beeTypes[i], 
-                                  honeycombX, honeycombY, honeycombType, honeycombActive, MAX_HONEYCOMBS, beesTier[i], honeycombTier);
+                                  honeycombX, honeycombY, honeycombType, honeycombActive, honeycombs_Max, beesTier[i], honeycombTier);
                 
                 (beeTypes[i] == WORKER_BEE)? playerScore += 100 : playerScore += 1000;
                 beesActive[i] = false;
@@ -1565,7 +1561,7 @@ bool checkBeeCollision(float bullet_x, float bullet_y, float beesX[], float bees
 
 // Function to draw bees
 
-void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int WORKER_BEE) {
+void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[], bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int WORKER_BEE) {
     Texture workerBeeTexture, killerBeeTexture, reversedworkerBeeTexture, reversedkillerBeeTexture;
     workerBeeTexture.loadFromFile("Textures/bee.png");
     killerBeeTexture.loadFromFile("Textures/Fast_bee.png");
@@ -1579,7 +1575,7 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
         };
         currentFrame = (currentFrame + 1) % 2;
         beeSprite.setTextureRect(frames[currentFrame]);
-    for (int i = 0; i < MAX_BEES; i++) {
+    for (int i = 0; i < bees_Max; i++) {
          if (beesActive[i]) {
             if (beeTypes[i] == WORKER_BEE){
                 if(beesDirection[i] == false)// false = left
@@ -1600,9 +1596,9 @@ void drawBees(RenderWindow& window, float beesX[], float beesY[], int beeTypes[]
 
 //generatinggg a honeycomb when a bee is hit
 void generateHoneycomb(float bee_x, float bee_y, int beeType, 
-                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS,int beeTier, int honeycombTier[]) {
+                       float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max,int beeTier, int honeycombTier[]) {
                        
-    for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+    for (int i = 0; i < honeycombs_Max; i++) {
         if (!honeycombActive[i]) {
             honeycombX[i] = bee_x;
             honeycombY[i] = bee_y;
@@ -1615,7 +1611,7 @@ void generateHoneycomb(float bee_x, float bee_y, int beeType,
 }
 
 
-void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[], float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, bool& generated, bool& hivegenerated) {
+void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombType[], int MAX_HONEYCOMB, int currentLevel, int honeycombTier[], float beehiveCord[][2], bool beehiveActive[], int beehives_Max, bool& generated, bool& hivegenerated) {
 
         int honeycombCount = 0;
     int beehiveCount= 0;
@@ -1679,13 +1675,13 @@ void honeycombPreGenerator(float honeycombX[], float honeycombY[], bool honeycom
 //draw the honeycombssss
 void drawHoneycombs(RenderWindow& window, 
                     float honeycombX[], float honeycombY[], 
-                    int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS) {
+                    int honeycombType[], bool honeycombActive[], int honeycombs_Max) {
     Texture yellowHoneycombTexture, redHoneycombTexture;
     yellowHoneycombTexture.loadFromFile("Textures/honeycomb.png");
     redHoneycombTexture.loadFromFile("Textures/honeycomb_red.png");
 
     Sprite honeycombSprite;
-    for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+    for (int i = 0; i < honeycombs_Max; i++) {
         if (honeycombActive[i]) {
             honeycombSprite.setTexture(honeycombType[i] == 0 ? yellowHoneycombTexture : redHoneycombTexture);
             honeycombSprite.setPosition(honeycombX[i], honeycombY[i]);
@@ -1695,13 +1691,13 @@ void drawHoneycombs(RenderWindow& window,
 }
 
 //function to check collision between bullet and honeycomb
-bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int MAX_HONEYCOMBS, float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups, int currentLevel){
-   for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[], float honeycombY[], int honeycombType[], bool honeycombActive[], int honeycombs_Max, float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int powerups_Max, int currentLevel){
+   for (int i = 0; i < honeycombs_Max; i++) {
         if (honeycombActive[i]) {
             if (abs(bullet_x - honeycombX[i]) < boxPixelsX && 
                 abs(bullet_y - honeycombY[i]) < boxPixelsY) { 
                 if (honeycombType[i] == 1 && currentLevel == 4){ // 1 = RED HONEYCOMB 
-                generatePowerUp(powerupCords, powerupActive, powerupType,powerupTimer, MaxPowerups,honeycombX[i],honeycombY[i]);
+                generatePowerUp(powerupCords, powerupActive, powerupType,powerupTimer, powerups_Max,honeycombX[i],honeycombY[i]);
                 }
                 honeycombActive[i] = false;
                 return true;
@@ -1715,13 +1711,16 @@ bool checkHoneyCombCollision(float bullet_x, float bullet_y, float honeycombX[],
 
 // FLOWERSSSSS
 
-bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS, bool& firstBeeLEFT, bool& firstBeeRIGHT, bool& beePlantedFlower) {
+bool flowerGenerator(float beeX, float beeY, int flowerCord[][2], int flowerActive[], const int flowers_Max, bool& firstBeeLEFT, bool& firstBeeRIGHT, bool& beePlantedFlower) {
 // we check if bee is just above ground and aligned with grid
+
+/*comprehensive explaination by me: bhai we need to generate flowers but the first bees from left and right generate two flowers so for the first bees we dont deactivate them and let them plant another flower, for all the other bees we check if there is a position that is free from other players and then plant flower there this is done by checking if there is any active flower positioned at the bee coordinates at that moment got it? */
+
 if (beeY >= (gameRows - 3) * boxPixelsY) {
     if (static_cast<int>(beeX) % boxPixelsX == 0) {
         if (beeX == 0 || beeX < boxPixelsX) {
             if (!firstBeeLEFT)  {
-                for (int i = 0; i < MAX_FLOWERS; i++) {
+                for (int i = 0; i < flowers_Max; i++) {
                     if (!flowerActive[i]) {
                         flowerActive[i] = true;
                         flowerCord[i][0] = static_cast<int>(beeX);
@@ -1738,7 +1737,7 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
         }
         else if (beeX >= resolutionX - boxPixelsX) {
             if (!firstBeeRIGHT) {
-              for (int i = 0; i < MAX_FLOWERS; i++) {
+              for (int i = 0; i < flowers_Max; i++) {
                     if (!flowerActive[i]) {
                         flowerActive[i] = true;
                         flowerCord[i][0] = static_cast<int>(beeX);
@@ -1754,10 +1753,10 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
             }
         }
         else if (firstBeeLEFT || firstBeeRIGHT) {
-            for (int i = 0; i < MAX_FLOWERS; i++) {
+            for (int i = 0; i < flowers_Max; i++) {
               if (!flowerActive[i] && !beePlantedFlower) {
                  bool positionOccupied = false;
-                    for (int j = 0; j < MAX_FLOWERS; j++) {
+                    for (int j = 0; j < flowers_Max; j++) {
                         if (flowerActive[j] && 
                             flowerCord[j][0] == static_cast<int>(beeX) && 
                             flowerCord[j][1] == static_cast<int>(beeY)) {
@@ -1775,7 +1774,7 @@ if (beeY >= (gameRows - 3) * boxPixelsY) {
                         gameGrid[gridY][gridX] = 2; 
                         beePlantedFlower = true;
                         return true;  
-                }
+            }
             }
         }
      }
@@ -1788,13 +1787,13 @@ return false;}
 
 
 
-void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int MAX_FLOWERS ) {
+void drawFlowers(RenderWindow& window, int flowerCord[][2], int flowerActive[], const int flowers_Max ) {
     Texture flowerTexture;
     flowerTexture.loadFromFile("Textures/flower.png");
     Sprite flowerSprite;
     flowerSprite.setTexture(flowerTexture);
 
-    for (int i = 0; i < MAX_FLOWERS; i++) {
+    for (int i = 0; i < flowers_Max; i++) {
         if (flowerActive[i]) {
             flowerSprite.setPosition(static_cast<float>(flowerCord[i][0]), static_cast<float>(flowerCord[i][1]));
             window.draw(flowerSprite);
@@ -1815,7 +1814,7 @@ void printGameGrid() {
 
 void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbirdY, bool& hummingbirdActive, 
                          float honeycombX[], float honeycombY[], bool honeycombActive[], 
-                         int MAX_HONEYCOMBS, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[],Clock& hummingbirdClock,const int MaxPowerups, float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], Clock& pauseClock, int currentLevel) {
+                         int honeycombs_Max, bool& isBirdSick, Clock& sickClock, bool& isFlyingToEdge, int& playerScore, int honeycombTier[], int honeycombType[],Clock& hummingbirdClock,const int powerups_Max, float powerupCords[][2],bool powerupActive[],float powerupTimer[],int powerupType[], Clock& pauseClock, int currentLevel) {
   
     
     static int hummingbirdMoves = 0; 
@@ -1945,11 +1944,11 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
             hummingbirdMoves++;
             newfoodNeeded = true; 
             isPaused = false; 
-            for (int i = 0; i < MAX_HONEYCOMBS; i++){
+            for (int i = 0; i < honeycombs_Max; i++){
                     if(honeycombActive[i]){
                         if(honeycombX[i] == foodX && honeycombY[i] == foodY){
                         if (currentLevel == 4)
-                            {generatePowerUp(powerupCords, powerupActive, powerupType,powerupTimer, MaxPowerups,honeycombX[i],honeycombY[i]);}
+                            {generatePowerUp(powerupCords, powerupActive, powerupType,powerupTimer, powerups_Max,honeycombX[i],honeycombY[i]);}
                             
                         /////////////////////assigning scores//////////////////
                             if (honeycombType[i] == 0){ // 0 = WORKER_BEE
@@ -1990,7 +1989,7 @@ void generateHummingbird(float deltaTime,float& hummingbirdX, float& hummingbird
             float nearestDistance = 10000000000;
             int nearestHoneycombIndex = -1;
         //using pythogras formula to calculate displacement
-            for (int i = 0; i < MAX_HONEYCOMBS; i++) {
+            for (int i = 0; i < honeycombs_Max; i++) {
                 if (honeycombActive[i]) {
                 float distance = (honeycombX[i] - hummingbirdX) * (honeycombX[i] - hummingbirdX) + (honeycombY[i] - hummingbirdY) * (honeycombY[i] - hummingbirdY); 
                 distance = distance * 0.5;
@@ -2080,8 +2079,8 @@ void drawHummingbird(RenderWindow& window, float hummingbirdX, float hummingbird
 
 
 //BOYS BEE HIVE TIME
-void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, int beehiveTier[], int beeTier){
-    for (int i = 0; i < MAX_BEEHIVES ; i++) {
+void generateBeeHive(float beeX, float beeY, int bees_Max, float beehiveCord[][2], bool beehiveActive[], int beehives_Max, int beehiveTier[], int beeTier){
+    for (int i = 0; i < beehives_Max ; i++) {
         if (!beehiveActive[i]) {
             beehiveCord[i][0] = beeX;
             beehiveCord[i][1] = beeY;
@@ -2092,8 +2091,8 @@ void generateBeeHive(float beeX, float beeY, int MAX_BEES, float beehiveCord[][2
     }
 }
 
-bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES) {
-   for (int i = 0; i < MAX_BEEHIVES; i++) {
+bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2], bool beehiveActive[], int beehives_Max) {
+   for (int i = 0; i < beehives_Max; i++) {
         if (beehiveActive[i]) {
             if (abs(bullet_x - beehiveCord[i][0]) < boxPixelsX && 
                 abs(bullet_y - beehiveCord[i][1]) < boxPixelsY) {
@@ -2106,9 +2105,9 @@ bool checkBeeHiveCollision(float bullet_x, float bullet_y, float beehiveCord[][2
 }
 
 
-void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int MAX_BEEHIVES){
+void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehiveActive[], int beehiveTier[], int beehives_Max){
   
-  for(int i = 0; i < MAX_BEEHIVES; i++){
+  for(int i = 0; i < beehives_Max; i++){
       if(beehiveActive[i]){
         if(beehiveTier[i] == 0 || beehiveTier[i] == 1){
           playerScore += 2000;
@@ -2125,13 +2124,13 @@ void beehivescore_handler(int& playerScore, float beehiveCord[][2], bool beehive
 
 }
 
-void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES ) {
+void drawBeeHive(RenderWindow& window, float beehiveCord[][2], bool beehiveActive[], int beehives_Max ) {
     Texture beehiveTexture;
     beehiveTexture.loadFromFile("Textures/hive1.png");
     Sprite beehiveSprite;
     beehiveSprite.setTexture(beehiveTexture);
 
-    for (int i = 0; i < MAX_BEEHIVES; i++) {
+    for (int i = 0; i < beehives_Max; i++) {
         if (beehiveActive[i]) {
             beehiveSprite.setPosition(static_cast<float>(beehiveCord[i][0]), static_cast<float>(beehiveCord[i][1]));
             window.draw(beehiveSprite);
@@ -2229,7 +2228,7 @@ void storeleaderboard(char leaderboard_names[][50], int leaderboard_scores[], in
 
 //////////////////////////////////////POWERUPSSSSSSS//////////////////////////////////////////////
 
-void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2], bool powerupActive[], float powerupTimer[], int powerupType[], const int MaxPowerups, bool power[], float& speedmultiplier, float& sizemultiplier, float powerTimer[]) {
+void updatePowerUps(float player_x, float player_y, float deltaTime, float powerupCords[][2], bool powerupActive[], float powerupTimer[], int powerupType[], const int powerups_Max, bool power[], float& speedmultiplier, float& sizemultiplier, float powerTimer[]) {
     
     /* power ups are treated same as a bee, each function call the falling speed is minused from y cordinate and when it reaches the last row it stays there
     using a switch statement we assign the power up when player collides with it
@@ -2243,7 +2242,7 @@ void updatePowerUps(float player_x, float player_y, float deltaTime, float power
     const float timer_Decrement = 0.002f;
 
 
-    for (int i = 0; i < MaxPowerups; i++) {
+    for (int i = 0; i < powerups_Max; i++) {
         if (powerupActive[i]) {
             powerupCords[i][1] += falling_Speed;
             if (powerupCords[i][1] >= lastROW) {
@@ -2312,7 +2311,7 @@ void updatePowerUps(float player_x, float player_y, float deltaTime, float power
            }
    }
 }
-void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int MaxPowerups, int powerupType[], float powerupTimer[], float powerTimer[]) {
+void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupActive[], int powerups_Max, int powerupType[], float powerupTimer[], float powerTimer[]) {
    /* different colors for every rectangle P*/
    
    Texture powerUpTextures[4];
@@ -2331,7 +2330,7 @@ void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupAct
         powerUpSprites[i].setTexture(powerUpTextures[i]);
     }
     //timer above the sprites
-    for (int i = 0; i < MaxPowerups; i++) {
+    for (int i = 0; i < powerups_Max; i++) {
         if (powerupActive[i]) {
             powerUpSprites[powerupType[i]].setPosition(powerupCords[i][0], powerupCords[i][1]);
             window.draw(powerUpSprites[powerupType[i]]);
@@ -2361,9 +2360,9 @@ void drawPowerUps(RenderWindow& window, float powerupCords[][2], bool powerupAct
 }
 
 
-void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int MaxPowerups,float honeycombX, float honeycombY) {
+void generatePowerUp(float powerupCords[][2], bool powerupActive[], int powerupType[], float powerupTimer[], int powerups_Max,float honeycombX, float honeycombY) {
     const float powerUp_timer = 10.0f;
-    for (int j = 0; j < MaxPowerups; j++) {
+    for (int j = 0; j < powerups_Max; j++) {
         if (!powerupActive[j]) {
             powerupType[j] = rand() % 4;
             powerupCords[j][0] = honeycombX;
@@ -2504,7 +2503,7 @@ void addInfantBee(float x, float y, float**& infantBeeCordinates, bool*& infantB
 }
 
 // Move infant bees
-void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int MAX_HONEYCOMBS, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees, bool beesActive[], int beesTier[], bool beesDirection[], int MAX_BEES, int beeTypes[], float beesX[], float beesY[], float beehiveCord[][2], int MAX_BEEHIVES, bool beehiveActive[], int beehiveTier[]) {
+void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], bool honeycombActive[], int honeycombs_Max, float**& infantBeeCordinates, bool*& infantBeesActive, int maxInfantBees, bool beesActive[], int beesTier[], bool beesDirection[], int bees_Max, int beeTypes[], float beesX[], float beesY[], float beehiveCord[][2], int beehives_Max, bool beehiveActive[], int beehiveTier[]) {
     const float INFANT_BEE_SPEED = 30.0f;
     const float WOBBLE = 1.0f * deltaTime;
     static bool wobbleDirection = false;
@@ -2516,7 +2515,7 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
     for (int i = 0; i < maxInfantBees; ++i) {
         if (infantBeesActive[i]) {
           bool top_blocked = false;
-           for (int j = 0; j < MAX_HONEYCOMBS; ++j) {
+           for (int j = 0; j < honeycombs_Max; ++j) {
                 if (honeycombActive[j]) {
                 if (abs(infantBeeCordinates[i][0] - honeycombX[j]) <= 32 && 
                         honeycombY[j] - (infantBeeCordinates[i][1] - 10) <= 1 && 
@@ -2524,7 +2523,7 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
                         top_blocked = true;              
                         bool left_Blocked = false;
                         bool right_Blocked = false;
-                        for (int k = 0; k < MAX_HONEYCOMBS; k++) {
+                        for (int k = 0; k < honeycombs_Max; k++) {
                             if (honeycombActive[k]) {
                                 if (abs(infantBeeCordinates[i][0] - honeycombX[k]) <= boxPixelsX && 
                                     honeycombX[k] < infantBeeCordinates[i][0]) {
@@ -2540,7 +2539,7 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
                         int infantBeeTier = (infantBeeCordinates[i][1]/32) + 1;
                         if (left_Blocked && right_Blocked) {
                             infantBeesActive[i] = false;
-                            generateBeeHive( infantBeeCordinates[i][0], infantBeeCordinates[i][1], MAX_BEES,  beehiveCord,beehiveActive, MAX_BEEHIVES, beehiveTier, infantBeeTier);}
+                            generateBeeHive( infantBeeCordinates[i][0], infantBeeCordinates[i][1], bees_Max,  beehiveCord,beehiveActive, beehives_Max, beehiveTier, infantBeeTier);}
                         else if (!left_Blocked) {
                             infantBeeCordinates[i][0] -= INFANT_BEE_SPEED * deltaTime;}
                         else if (!right_Blocked) {
@@ -2557,14 +2556,14 @@ void update_infantBees(float deltaTime, float honeycombX[], float honeycombY[], 
 
             if (infantBeeCordinates[i][1] <= 0) {
                 infantBeesActive[i] = false;
-                generate_hunterbee(infantBeeCordinates[i][0], infantBeeCordinates[i][1], MAX_BEES, beesActive, beesDirection, beesTier, beeTypes, beesX, beesY); 
+                generate_hunterbee(infantBeeCordinates[i][0], infantBeeCordinates[i][1], bees_Max, beesActive, beesDirection, beesTier, beeTypes, beesX, beesY); 
                 continue;
             }
           }
         }
 }
 
-void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int MAX_BEEHIVES, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees){
+void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  float beehiveCord[][2], bool beehiveActive[], int beehives_Max, float beehiveCooldownTimers[], bool beehiveCanSpawn[], float deltaTime, Clock& globalSpawnTimer, int& maxInfantBees){
     const float MAX_SPAWN_INTERVAL = 10.0f;
     const float INITIAL_COOLDOWN = 5.0f;
     const float SHRINK_FACTOR = 0.3f;
@@ -2576,7 +2575,7 @@ void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  f
 
 //global spawn timer is compared against our dynamic spawn timer
     if (globalSpawnTimer.getElapsedTime().asSeconds() >= timer_limit) {
-            int random_bee_hive = rand() % MAX_BEEHIVES;
+            int random_bee_hive = rand() % beehives_Max;
             if (beehiveActive[random_bee_hive] && beehiveCanSpawn[random_bee_hive]) {
                 addInfantBee(beehiveCord[random_bee_hive][0], beehiveCord[random_bee_hive][1], infantBeeCordinates, infantBeesActive, maxInfantBees);
                 beehiveCanSpawn[random_bee_hive] = false;
@@ -2585,7 +2584,7 @@ void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  f
                 infantBeeCount++;
             }
 
-        for (int i = 0; i < MAX_BEEHIVES; i++) {
+        for (int i = 0; i < beehives_Max; i++) {
             if (beehiveActive[i] && !beehiveCanSpawn[i]) {
                 beehiveCooldownTimers[i] -= deltaTime;
             }
@@ -2602,10 +2601,10 @@ void infantbee_spawner(float**& infantBeeCordinates, bool*& infantBeesActive,  f
 
 
 
-void generate_hunterbee(float infantBeeX,float infantBeeY, int MAX_BEES, bool beesActive[], bool beesDirection[], int beesTier[], int beeTypes[], float beesX[], float beesY[]){
+void generate_hunterbee(float infantBeeX,float infantBeeY, int bees_Max, bool beesActive[], bool beesDirection[], int beesTier[], int beeTypes[], float beesX[], float beesY[]){
 float lastROW = (gameRows - 3) * boxPixelsY;
 //this function generates the hunter bee when the uh infant bee reaches top
-  for(int i = 0; i <MAX_BEES;i++){
+  for(int i = 0; i <bees_Max;i++){
     if(!beesActive[i]){
       beesActive[i] = true;
       beeTypes[i] = 1; //1 = KILLER BEE
