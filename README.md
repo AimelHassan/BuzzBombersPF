@@ -60,8 +60,8 @@ The game was developed using basic C++ concepts such as functions, loops, condit
 4. Follow the instructions on Steps To Compile.txt
 
 ##Credits
-Developed by: Aimel Hassan
-For inquiries, contact: aimelhasan55@gmail.com
-Enjoy the game! 🎮
+- Developed by: Aimel Hassan
+- For inquiries, contact: aimelhasan55@gmail.com
+- Enjoy the game! 🎮
 
 
