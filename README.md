@@ -59,7 +59,7 @@ The game was developed using basic C++ concepts such as functions, loops, condit
    git clone https://github.com/your-username/buzz-bombers.git
 4. Follow the instructions on Steps To Compile.txt
 
-##Credits
+## Credits
 - Developed by: Aimel Hassan
 - For inquiries, contact: aimelhasan55@gmail.com
 - Enjoy the game! 🎮
